@@ -1,0 +1,41 @@
+package cljminecraft;
+import java.io.File;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.PluginLoader;
+import java.util.HashSet;
+import java.net.URLClassLoader;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
+import org.bukkit.Server;
+import java.lang.ClassLoader;
+import java.net.URL;
+
+public class ClojurePlugin extends JavaPlugin {
+    public void onEnable(String ns, String enableFunction) {
+        try {
+            ClassLoader previous = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); 
+
+            clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
+            clojure.lang.RT.var(ns, enableFunction).invoke(this);
+
+            Thread.currentThread().setContextClassLoader(previous);
+        } catch (Exception e) {
+            System.out.println("Something broke setting up Clojure");
+            e.printStackTrace();
+        }
+    }
+
+    public void onEnable() {
+        System.out.println("Loading Clojure Plugin");
+        onEnable("cljminecraft.core", "onenable");
+    }
+
+    public void onDisable(String ns, String disableFunction) {
+        clojure.lang.RT.var(ns, disableFunction).invoke(this);
+    }
+
+    public void onDisable() {
+        onDisable("cljminecraft.core", "ondisable");
+    }
+}
