@@ -15,7 +15,7 @@ public class ClojurePlugin extends JavaPlugin {
         try {
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); 
-
+            
             clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
             clojure.lang.RT.var(ns, enableFunction).invoke(this);
 
@@ -27,8 +27,14 @@ public class ClojurePlugin extends JavaPlugin {
     }
 
     public void onEnable() {
-        System.out.println("Loading Clojure Plugin");
-        onEnable("cljminecraft.core", "onenable");
+        String name = getDescription().getName();
+        System.out.println("Enabling "+name+" clojure Plugin");
+        
+        if ("clj-minecraft".equals(name)) {
+            onEnable("cljminecraft.core", "onenable");
+        } else {
+            onEnable(name+".core", "enable-plugin");
+        }
     }
 
     public void onDisable(String ns, String disableFunction) {
@@ -36,6 +42,12 @@ public class ClojurePlugin extends JavaPlugin {
     }
 
     public void onDisable() {
-        onDisable("cljminecraft.core", "ondisable");
+        String name = getDescription().getName();
+        System.out.println("Disabling "+name+" clojure Plugin");
+        if ("clj-minecraft".equals(name)) {
+            onEnable("cljminecraft.core", "onenable");
+        } else {
+            onEnable(name+".core", "disable-plugin");
+        }
     }
 }

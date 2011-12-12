@@ -3,6 +3,19 @@
   (:require [swank.swank])
   (:use [clojure.tools.logging]))
 
+(declare clj-server*)
+(declare clj-plugin*)
+(declare clj-plugin-manager*)
+(declare clj-plugin-desc*)
+
+(defmacro log-info [str]
+  `(info (.getName ~(symbol "*ns*")) ":" ~str))
+
+(defmacro log-warn [str]
+  `(warn (.getName ~(symbol "*ns*")) ":" ~str))
+
+(defmacro log-debug [str]
+  `(debug (.getName ~(symbol "*ns*")) ":" ~str))
 
 (defmacro auto-proxy
   "Automatically build a proxy, stubbing out useless entries, ala: http://www.brool.com/index.php/snippet-automatic-proxy-creation-in-clojure"
@@ -24,39 +37,22 @@
 
 (defonce swank* nil)
 
+(defn broadcast-msg [message]
+  (.broadcastMessage clj-server* message))
+
 (defn start-clojure []
   (if (nil? swank*)
     (def swank* (swank.swank/start-repl 4005))))
 
-(defn load-plg [plugin-name desc]
-  (eval `(~(symbol (str plugin-name ".core") "enable-plugin") ~desc)))
-
-
-(defn enable-plugin [test]
-  (print test))
-
 (defn onenable [plugin]
-  (let [server (.getServer plugin)
-        desc (.getDescription plugin)
-        name (.getName desc)
-        plugindesc {:plugin plugin
-                    :server server
-                    :manager (.getPluginManager server)
-                    :desc desc}]
-    (info "CLojure starting" name)
-    (if (= name "clj-minecraft")
-      (start-clojure)
-      (load-plg name plugindesc)
-      )
-    (info "Clojure Started plugin:" (.getName desc) "," (.getVersion desc))
-    )
-  
+  (def clj-plugin* plugin)
+  (def clj-server* (.getServer plugin))
+  (def clj-plugin-manager* (.getPluginManager clj-server* ))
+  (def clj-plugin-desc* (.getDescription plugin))
+  (start-clojure)
+  (log-info "Clojure started")
   )
 
 (defn ondisable [plugin]
-  (if (= (.getName (.getDescription plugin)) "clj-minecraft")
-    nil?
-    ;(unload-plugin (.getName (.getDescription plugin)))
-    )
-  (info "Goodbye"))
+  (log-info "Clojure stopped"))
 
