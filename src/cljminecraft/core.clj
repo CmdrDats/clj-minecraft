@@ -1,21 +1,14 @@
 (ns cljminecraft.core
-  (:require [clojure.set :as set])
-  (:require [swank.swank])
-  (:use [clojure.tools.logging]))
+  (:require [clojure.set :as set]
+            [swank.swank]
+            [clojure.tools.nrepl])
+  (:use [cljminecraft.logging]
+        [cljminecraft.config]))
 
 (declare clj-server*)
 (declare clj-plugin*)
 (declare clj-plugin-manager*)
 (declare clj-plugin-desc*)
-
-(defmacro log-info [str]
-  `(info (.getName ~(symbol "*ns*")) ":" ~str))
-
-(defmacro log-warn [str]
-  `(warn (.getName ~(symbol "*ns*")) ":" ~str))
-
-(defmacro log-debug [str]
-  `(debug (.getName ~(symbol "*ns*")) ":" ~str))
 
 (defmacro auto-proxy
   "Automatically build a proxy, stubbing out useless entries, ala: http://www.brool.com/index.php/snippet-automatic-proxy-creation-in-clojure"
@@ -30,29 +23,44 @@
 (defmacro map-enums [enumclass]
   `(apply merge (map #(hash-map (keyword (.name %)) %) (~(symbol (apply str (name enumclass) "/values"))))))
 
-(def event-types (map-enums org.bukkit.event.Event$Type))
-(def event-priorities (map-enums org.bukkit.event.Event$Priority))
-
 (def plugins (ref {}))
 
-(defonce swank* nil)
+(def repl-types* #{:nrepl :swank})
+
+(def repl-type (ref nil))
+
+(def repl-server (agent nil))
 
 (defn broadcast-msg [message]
   (.broadcastMessage clj-server* message))
 
-(defn start-clojure []
-  (if (nil? swank*)
-    (def swank* (swank.swank/start-repl 4005))))
+(defn start-clojure [new-repl-type]
+    (dosync
+      (when (nil? @repl-type)
+        (ref-set repl-type new-repl-type)
+        (send-off repl-server
+                  (fn [_] (case new-repl-type
+                            :nrepl
+                            (let [nrepl-port 4006]
+                              (info (format "Starting nRepl server on port %d" nrepl-port))
+                              (clojure.tools.nrepl/start-server nrepl-port)
+                              )
+                            ; Default to swank
+                            (let [swank-port 4005]
+                              ; Swank server provides its own log notification
+                              (swank.swank/start-repl 4005))))))))
 
 (defn onenable [plugin]
   (def clj-plugin* plugin)
   (def clj-server* (.getServer plugin))
   (def clj-plugin-manager* (.getPluginManager clj-server* ))
   (def clj-plugin-desc* (.getDescription plugin))
-  (start-clojure)
-  (log-info "Clojure started")
+  (let [repl-key "repl"
+        config (load-config plugin {repl-key :swank})]
+    (start-clojure (get-keyword config repl-key repl-types*)))
+  (info "Clojure started")
   )
 
 (defn ondisable [plugin]
-  (log-info "Clojure stopped"))
+  (info "Clojure stopped"))
 
