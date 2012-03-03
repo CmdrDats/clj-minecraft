@@ -2,21 +2,13 @@
   (:require [clojure.set :as set]
             [swank.swank]
             [clojure.tools.nrepl])
-  (:use [clojure.tools.logging]))
+  (:use [cljminecraft.logging]
+        [cljminecraft.config]))
 
 (declare clj-server*)
 (declare clj-plugin*)
 (declare clj-plugin-manager*)
 (declare clj-plugin-desc*)
-
-(defmacro log-info [str]
-  `(info (.getName ~(symbol "*ns*")) ":" ~str))
-
-(defmacro log-warn [str]
-  `(warn (.getName ~(symbol "*ns*")) ":" ~str))
-
-(defmacro log-debug [str]
-  `(debug (.getName ~(symbol "*ns*")) ":" ~str))
 
 (defmacro auto-proxy
   "Automatically build a proxy, stubbing out useless entries, ala: http://www.brool.com/index.php/snippet-automatic-proxy-creation-in-clojure"
@@ -33,6 +25,8 @@
 
 (def plugins (ref {}))
 
+(def repl-types* #{:nrepl :swank})
+
 (def repl-type (ref nil))
 
 (def repl-server (agent nil))
@@ -40,9 +34,7 @@
 (defn broadcast-msg [message]
   (.broadcastMessage clj-server* message))
 
-(defn start-clojure
-  ([] (start-clojure :swank))
-  ([new-repl-type]
+(defn start-clojure [new-repl-type]
     (dosync
       (when (nil? @repl-type)
         (ref-set repl-type new-repl-type)
@@ -56,20 +48,19 @@
                             ; Default to swank
                             (let [swank-port 4005]
                               ; Swank server provides its own log notification
-                              (swank.swank/start-repl 4005)))))))))
+                              (swank.swank/start-repl 4005))))))))
 
 (defn onenable [plugin]
   (def clj-plugin* plugin)
   (def clj-server* (.getServer plugin))
   (def clj-plugin-manager* (.getPluginManager clj-server* ))
   (def clj-plugin-desc* (.getDescription plugin))
-  (let [file (java.io.File. (.getDataFolder plugin) "config.yml")]
-    (if (.exists file)
-      (start-clojure :nrepl)
-      (start-clojure)))
-  (log-info "Clojure started")
+  (let [repl-key "repl"
+        config (load-config plugin {repl-key :swank})]
+    (start-clojure (get-keyword config repl-key repl-types*)))
+  (info "Clojure started")
   )
 
 (defn ondisable [plugin]
-  (log-info "Clojure stopped"))
+  (info "Clojure stopped"))
 
