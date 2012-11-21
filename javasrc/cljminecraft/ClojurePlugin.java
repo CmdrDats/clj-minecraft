@@ -35,6 +35,7 @@ public class ClojurePlugin extends JavaPlugin {
 
         if ("clj-minecraft".equals(name)) {
             onEnable("cljminecraft.core", "on-enable");
+            getServer().getPluginManager().registerEvents(new PluginListener (), this);
         } else {
             onEnable(name+".core", "enable-plugin");
         }
