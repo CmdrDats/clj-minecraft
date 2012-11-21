@@ -33,12 +33,8 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Enabling "+name+" clojure Plugin");
 
-        if ("clj-minecraft".equals(name)) {
-            onEnable("cljminecraft.core", "on-enable");
-            getServer().getPluginManager().registerEvents(new PluginListener (), this);
-        } else {
-            onEnable(name+".core", "enable-plugin");
-        }
+        onEnable("cljminecraft.core", "on-enable");
+        getServer().getPluginManager().registerEvents(new PluginListener (), this);
     }
 
     public void onDisable(String ns, String disableFunction) {
