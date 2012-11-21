@@ -58,3 +58,6 @@
 (defn on-disable [plugin]
   (info "Clojure stopped"))
 
+(defn block-break-event [evt]
+      (let [player (.getPlayer evt)]
+        (.sendMessage player "Yo dawg!")))
