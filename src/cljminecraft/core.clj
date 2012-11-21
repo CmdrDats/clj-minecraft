@@ -1,8 +1,8 @@
 (ns cljminecraft.core
-  (:require [clojure.set :as set]
-            [clojure.tools.nrepl])
+  (:require [clojure.set :as set])
   (:use [cljminecraft.logging]
-        [cljminecraft.config]))
+        [cljminecraft.config]
+        [clojure.tools.nrepl.server :only (start-server stop-server)]))
 
 (declare clj-server*)
 (declare clj-plugin*)
@@ -24,6 +24,7 @@
 
 (def plugins (ref {}))
 
+(def repl-types* #{:nrepl :swank})
 
 (def repl-type (ref nil))
 
@@ -41,8 +42,7 @@
                             :nrepl
                             (let [nrepl-port 4006]
                               (info (format "Starting nRepl server on port %d" nrepl-port))
-                              (clojure.tools.nrepl/start-server nrepl-port)
-                              )))))))
+                              (start-server nrepl-port))))))))
 
 (defn onenable [plugin]
   (def clj-plugin* plugin)
