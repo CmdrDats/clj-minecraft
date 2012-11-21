@@ -13,9 +13,10 @@ import java.net.URL;
 public class ClojurePlugin extends JavaPlugin {
     public void onEnable(String ns, String enableFunction) {
         try {
+            System.out.println("ns = " + ns);
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader()); 
-            
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
             clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
             clojure.lang.RT.var(ns, enableFunction).invoke(this);
 
@@ -29,7 +30,7 @@ public class ClojurePlugin extends JavaPlugin {
     public void onEnable() {
         String name = getDescription().getName();
         System.out.println("Enabling "+name+" clojure Plugin");
-        
+
         if ("clj-minecraft".equals(name)) {
             onEnable("cljminecraft.core", "onenable");
         } else {

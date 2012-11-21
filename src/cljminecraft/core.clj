@@ -1,6 +1,5 @@
 (ns cljminecraft.core
   (:require [clojure.set :as set]
-            [swank.swank]
             [clojure.tools.nrepl])
   (:use [cljminecraft.logging]
         [cljminecraft.config]))
@@ -25,7 +24,6 @@
 
 (def plugins (ref {}))
 
-(def repl-types* #{:nrepl :swank})
 
 (def repl-type (ref nil))
 
@@ -44,11 +42,7 @@
                             (let [nrepl-port 4006]
                               (info (format "Starting nRepl server on port %d" nrepl-port))
                               (clojure.tools.nrepl/start-server nrepl-port)
-                              )
-                            ; Default to swank
-                            (let [swank-port 4005]
-                              ; Swank server provides its own log notification
-                              (swank.swank/start-repl 4005))))))))
+                              )))))))
 
 (defn onenable [plugin]
   (def clj-plugin* plugin)
@@ -56,7 +50,7 @@
   (def clj-plugin-manager* (.getPluginManager clj-server* ))
   (def clj-plugin-desc* (.getDescription plugin))
   (let [repl-key "repl"
-        config (load-config plugin {repl-key :swank})]
+        config (load-config plugin {repl-key :nrepl})]
     (start-clojure (get-keyword config repl-key repl-types*)))
   (info "Clojure started")
   )

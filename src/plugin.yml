@@ -2,7 +2,6 @@ name: clj-minecraft
 main: cljminecraft.ClojurePlugin
 version: 1.0.0
 website: http://www.dats.co.za
-author: CmdrDats
+author: CmdrDats & aiscott
 description: Bukkit + clojure integration library
-softdepend: [Spout] 
 
