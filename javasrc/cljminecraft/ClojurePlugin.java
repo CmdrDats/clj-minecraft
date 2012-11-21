@@ -16,7 +16,6 @@ import java.net.URL;
 public class ClojurePlugin extends JavaPlugin {
     public void onEnable(String ns, String enableFunction) {
         try {
-            System.out.println("ns = " + ns);
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
@@ -35,7 +34,7 @@ public class ClojurePlugin extends JavaPlugin {
         System.out.println("Enabling "+name+" clojure Plugin");
 
         if ("clj-minecraft".equals(name)) {
-            onEnable("cljminecraft.core", "onenable");
+            onEnable("cljminecraft.core", "on-enable");
         } else {
             onEnable(name+".core", "enable-plugin");
         }
@@ -49,7 +48,7 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Disabling "+name+" clojure Plugin");
         if ("clj-minecraft".equals(name)) {
-            onEnable("cljminecraft.core", "ondisable");
+            onEnable("cljminecraft.core", "on-disable");
         } else {
             onEnable(name+".core", "disable-plugin");
         }
