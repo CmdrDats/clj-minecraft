@@ -42,9 +42,9 @@
                             :nrepl
                             (let [nrepl-port 4006]
                               (info (format "Starting nRepl server on port %d" nrepl-port))
-                              (start-server nrepl-port))))))))
+                              (start-server :port nrepl-port))))))))
 
-(defn onenable [plugin]
+(defn on-enable [plugin]
   (def clj-plugin* plugin)
   (def clj-server* (.getServer plugin))
   (def clj-plugin-manager* (.getPluginManager clj-server* ))
@@ -55,6 +55,6 @@
   (info "Clojure started")
   )
 
-(defn ondisable [plugin]
+(defn on-disable [plugin]
   (info "Clojure stopped"))
 
