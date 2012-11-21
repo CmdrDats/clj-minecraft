@@ -1,4 +1,7 @@
 package cljminecraft;
+import clojure.lang.RT;
+import clojure.lang.Var;
+import clojure.lang.Compiler;
 import java.io.File;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.PluginLoader;
