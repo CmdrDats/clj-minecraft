@@ -10,3 +10,5 @@ pom.xml
 bin
 tmp
 target
+test
+run.sh
