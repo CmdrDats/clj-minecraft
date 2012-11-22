@@ -3,13 +3,32 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.ClassLoader;
 
 public class ClojurePlugin extends JavaPlugin {
+	
+    public void loadClojureFile(String cljFile) {
+        try {
+            ClassLoader previous = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
+            System.out.println("loadscript: " + cljFile);
+            clojure.lang.RT.loadResourceScript(cljFile+".clj");
+
+            Thread.currentThread().setContextClassLoader(previous);
+        } catch (Exception e) {
+            System.out.println("Something broke setting up Clojure");
+            e.printStackTrace();
+        }
+    	
+    }
+    
     public void onEnable(String ns, String enableFunction) {
         try {
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
             clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
+            System.out.println("loadscript: " + ns.replaceAll("[.]", "/"));
             clojure.lang.RT.var(ns, enableFunction).invoke(this);
+            
 
             Thread.currentThread().setContextClassLoader(previous);
         } catch (Exception e) {
@@ -23,6 +42,7 @@ public class ClojurePlugin extends JavaPlugin {
         System.out.println("Enabling "+name+" clojure Plugin");
 
         onEnable("cljminecraft.core", "on-enable");
+        //loadClojureFile("cljminecraft/eventage");
         getServer().getPluginManager().registerEvents(new PluginListener (), this);
     }
 
