@@ -10,15 +10,11 @@ import org.bukkit.event.block.*;
 //import org.bukkit.event.painting.*;
 
 public class PluginListener  implements Listener {
-    private String ns;
-
 
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
-        this.ns = "cljminecraft.core";
-        clojure.lang.Var f = clojure.lang.RT.var(ns, "block-break-event");
+        clojure.lang.Var f = clojure.lang.RT.var("cljminecraft.eventage", "block-break-event");
         if (f.isBound()) f.invoke(event);
     }
-
 
 }

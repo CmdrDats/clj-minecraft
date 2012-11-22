@@ -1,6 +1,7 @@
 (ns cljminecraft.core
   (:require [clojure.set :as set])
-  (:use [cljminecraft.logging]
+  (:use [cljminecraft.eventage]
+        [cljminecraft.logging]
         [cljminecraft.config]
         [clojure.tools.nrepl.server :only (start-server stop-server)]))
 
@@ -58,6 +59,4 @@
 (defn on-disable [plugin]
   (info "Clojure stopped"))
 
-(defn block-break-event [evt]
-      (let [player (.getPlayer evt)]
-        (.sendMessage player "Yo dawg!")))
+
