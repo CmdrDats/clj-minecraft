@@ -1,6 +1,6 @@
 (ns cljminecraft.config
   "Provides a thin wrapper for bukkit config"
-  (:use cljminecraft.logging))
+  (:require [cljminecraft.logging :as logging]))
 
 (defrecord Config [bukkit-config defaults])
 
@@ -19,5 +19,5 @@ exists, returns nil."
     (if (contains? accepted-values config-entry)
       config-entry
       (let [default (get (:defaults config) entry-key)]
-        (warn (format "Unrecognised repl type: %s, using default %s" config-entry (pr-str keyword)))
+        (logging/warn (format "Unrecognised repl type: %s, using default %s" config-entry (pr-str keyword)))
         default))))

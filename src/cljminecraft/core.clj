@@ -1,9 +1,9 @@
 (ns cljminecraft.core
-  (:require [clojure.set :as set])
-  (:use [cljminecraft.eventage]
-        [cljminecraft.logging]
-        [cljminecraft.config]
-        [clojure.tools.nrepl.server :only (start-server stop-server)]))
+  (:require [clojure.set :as set]
+            [cljminecraft.eventage]
+            [cljminecraft.logging :as logging]
+            [cljminecraft.config :as cfg]
+            [clojure.tools.nrepl.server :refer (start-server stop-server)]))
 
 (declare clj-server*)
 (declare clj-plugin*)
@@ -42,7 +42,7 @@
                   (fn [_] (case new-repl-type
                             :nrepl
                             (let [nrepl-port 4006]
-                              (info (format "Starting nRepl server on port %d" nrepl-port))
+                              (logging/info (format "Starting nRepl server on port %d" nrepl-port))
                               (start-server :port nrepl-port))))))))
 
 (defn on-enable [plugin]
@@ -51,12 +51,12 @@
   (def clj-plugin-manager* (.getPluginManager clj-server* ))
   (def clj-plugin-desc* (.getDescription plugin))
   (let [repl-key "repl"
-        config (load-config plugin {repl-key :nrepl})]
-    (start-clojure (get-keyword config repl-key repl-types*)))
-  (info "Clojure started")
+        config (cfg/load-config plugin {repl-key :nrepl})]
+    (start-clojure (cfg/get-keyword config repl-key repl-types*)))
+  (logging/info "Clojure started")
   )
 
 (defn on-disable [plugin]
-  (info "Clojure stopped"))
+  (logging/info "Clojure stopped"))
 
 
