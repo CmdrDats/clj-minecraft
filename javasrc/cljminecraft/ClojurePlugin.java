@@ -1,17 +1,6 @@
 package cljminecraft;
-import clojure.lang.RT;
-import clojure.lang.Var;
-import clojure.lang.Compiler;
-import java.io.File;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.PluginLoader;
-import java.util.HashSet;
-import java.net.URLClassLoader;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.PluginManager;
-import org.bukkit.Server;
 import java.lang.ClassLoader;
-import java.net.URL;
 
 public class ClojurePlugin extends JavaPlugin {
     public void onEnable(String ns, String enableFunction) {
