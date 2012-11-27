@@ -11,4 +11,4 @@ bin
 tmp
 target
 test
-run.sh
+*.sh
