@@ -5,7 +5,7 @@
                  [org.clojure/tools.nrepl "0.2.0-beta10"]
                  [org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT"]]
 
-  :javac-options [ "-d" "classes/"]
+  :javac-options [ "-d" "classes/" "-source" "1.6" "-target" "1.6"]
   :java-source-paths ["javasrc"]
 
   :repositories [["bukkit.snapshots" "http://repo.bukkit.org/content/repositories/snapshots"]]
