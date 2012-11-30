@@ -1,6 +1,6 @@
 (ns cljminecraft.core
   (:require [clojure.set :as set]
-            [cljminecraft.eventage]
+            [cljminecraft.events]
             [cljminecraft.logging :as logging]
             [cljminecraft.config :as cfg]
             [clojure.tools.nrepl.server :refer (start-server stop-server)]))

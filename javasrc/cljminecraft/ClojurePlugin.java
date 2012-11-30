@@ -43,7 +43,7 @@ public class ClojurePlugin extends JavaPlugin {
 
         onEnable("cljminecraft.core", "on-enable");
         //loadClojureFile("cljminecraft/eventage");
-        getServer().getPluginManager().registerEvents(new PluginListener ("cljminecraft.eventage"), this);
+        getServer().getPluginManager().registerEvents(new PluginListener ("cljminecraft.events"), this);
     }
 
     public void onDisable(String ns, String disableFunction) {
