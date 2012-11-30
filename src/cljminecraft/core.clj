@@ -1,38 +1,26 @@
 (ns cljminecraft.core
   (:require [clojure.set :as set]
-            [cljminecraft.events]
-            [cljminecraft.logging :as logging]
+            [cljminecraft.state :as state]
+            [cljminecraft.events :as events]
+            [cljminecraft.util :as util]
+            [cljminecraft.logging :as log]
             [cljminecraft.config :as cfg]
             [clojure.tools.nrepl.server :refer (start-server stop-server)]))
 
-(declare clj-server*)
-(declare clj-plugin*)
-(declare clj-plugin-manager*)
-(declare clj-plugin-desc*)
 
-(defmacro auto-proxy
-  "Automatically build a proxy, stubbing out useless entries, ala: http://www.brool.com/index.php/snippet-automatic-proxy-creation-in-clojure"
-  [interfaces variables & args]
-  (let [defined (set (map #(str (first %)) args))
-        names (fn [i] (map #(.getName %) (.getMethods i)))
-        all-names (into #{} (apply concat (map names (map resolve interfaces))))
-        undefined (set/difference all-names defined) 
-        auto-gen (map (fn [x] `(~(symbol x) [& ~'args])) undefined)]
-    `(proxy ~interfaces ~variables ~@args ~@auto-gen)))
 
-(defmacro map-enums [enumclass]
-  `(apply merge (map #(hash-map (keyword (.name %)) %) (~(symbol (apply str (name enumclass) "/values"))))))
+(defonce plugins (ref {}))
 
-(def plugins (ref {}))
+(defonce repl-types* #{:nrepl :swank})
 
-(def repl-types* #{:nrepl :swank})
+(defonce repl-type (ref nil))
 
-(def repl-type (ref nil))
+(defonce repl-server (agent nil))
 
-(def repl-server (agent nil))
 
 (defn broadcast-msg [message]
-  (.broadcastMessage clj-server* message))
+  (.broadcastMessage (:server state/server) message))
+
 
 (defn start-clojure [new-repl-type]
     (dosync
@@ -42,21 +30,21 @@
                   (fn [_] (case new-repl-type
                             :nrepl
                             (let [nrepl-port 4006]
-                              (logging/info (format "Starting nRepl server on port %d" nrepl-port))
+                              (log/info (format "Starting nRepl server on port %d" nrepl-port))
                               (start-server :port nrepl-port))))))))
 
+(defn events []
+  (events/events))
+
 (defn on-enable [plugin]
-  (def clj-plugin* plugin)
-  (def clj-server* (.getServer plugin))
-  (def clj-plugin-manager* (.getPluginManager clj-server* ))
-  (def clj-plugin-desc* (.getDescription plugin))
+  (state/register-server (state/get-server plugin))
   (let [repl-key "repl"
         config (cfg/load-config plugin {repl-key :nrepl})]
     (start-clojure (cfg/get-keyword config repl-key repl-types*)))
-  (logging/info "Clojure started")
-  )
+  (log/info "Clojure started")
+  (events/register-eventlist @state/server (events)))
 
 (defn on-disable [plugin]
-  (logging/info "Clojure stopped"))
+  (log/info "Clojure stopped"))
 
 
