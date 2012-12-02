@@ -37,7 +37,8 @@ public class ClojurePlugin extends JavaPlugin {
         }
     }
 
-    public void onEnable() {
+    @Override
+	public void onEnable() {
         String name = getDescription().getName();
         System.out.println("Enabling "+name+" clojure Plugin");
 
@@ -48,7 +49,8 @@ public class ClojurePlugin extends JavaPlugin {
         clojure.lang.RT.var(ns, disableFunction).invoke(this);
     }
 
-    public void onDisable() {
+    @Override
+	public void onDisable() {
         String name = getDescription().getName();
         System.out.println("Disabling "+name+" clojure Plugin");
         if ("clj-minecraft".equals(name)) {
