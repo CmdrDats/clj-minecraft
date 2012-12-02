@@ -26,12 +26,26 @@
     (register-event server (:classname ev) (:event-fn ev) (:priority ev))))
 
 (defmacro event
-  "Convenience function for registering events, event-name being prefixed with org.bukkit.event. and camelcased so that you can simply call (onevent block.block-break-event [e] (logging/info (bean e))) to register for the org.bukkit.event.block.BlockBreakEvent and run the body with the BlockBreakEvent as its only argument"
+  "Convenience function for registering events, event-name being prefixed with org.bukkit.event. 
+and camelcased so that you can simply call (onevent block.block-break-event [e] (logging/info (bean e))) 
+to register for the org.bukkit.event.block.BlockBreakEvent and run the body with the BlockBreakEvent as its only 
+argument"
   [event-name fn & [priority]]
   (let [classname (util/package-classname "org.bukkit.event" (str event-name))]
     `{:classname ~(resolve (symbol classname))
       :event-fn ~fn
       :priority ~priority}))
 
+(defn achat-event [evt]
+      (let [player (.getPlayer evt)
+            playerName (.getName player)]
+        (.sendMessage player (str "chatting, " playerName ": " (. evt getMessage)))))
+
 (defn events []
-  [(event block.block-break-event #'block-break-event)])
+  [
+   (event block.block-break-event #'block-break-event)
+   (event player.async-player-chat-event #'achat-event)
+   ]
+  )
+
+
