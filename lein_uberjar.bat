@@ -3,5 +3,5 @@
 
 @echo off
 set JAVA_CMD="c:\program files\java\jdk1.6.0_31\bin\java.exe"
-lein uberjar
+call lein uberjar
 @pause
