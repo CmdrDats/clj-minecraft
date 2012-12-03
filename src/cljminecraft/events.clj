@@ -37,15 +37,3 @@ argument"
       :event-fn ~fn
       :priority ~priority}))
 
-(defn achat-event [evt]
-      (let [player (.getPlayer evt)
-            playerName (.getName player)]
-        (.sendMessage player (str "chatting, " playerName ": " (. evt getMessage)))))
-
-(defn events []
-  [
-   (event block.block-break-event #'block-break-event)
-   (event player.async-player-chat-event #'achat-event)
-   ]
-  )
-
