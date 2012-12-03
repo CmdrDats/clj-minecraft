@@ -19,12 +19,12 @@ public class ClojurePlugin extends JavaPlugin {
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
-	private HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
+	private final static HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
 	
 	
 	public ClojurePlugin() {
 		//constructor
-		info("CONSTRUCTOR");
+		info("CONSTRUCTOR");//XXX: hmm  an instance is create of this class for every child plugin (including the main one) 
 	}
 	
     private boolean loadClojureFile(String cljFile) {
@@ -74,11 +74,13 @@ public class ClojurePlugin extends JavaPlugin {
 		try {
 			String pluginName = getDescription().getName();
 			
-			info( "Enabling " + pluginName + " clojure Plugin" );
+			
 			
 			if ( "clj-minecraft".equals( pluginName ) ) {
+				info( "Enabling main " + pluginName + " clojure Plugin" );
 				errored=!onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 			} else {
+				info( "Enabling child " + pluginName + " clojure Plugin" );
 				errored=!onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
 				if (!errored) {
 					pluginState.put( pluginName, Boolean.TRUE );
@@ -103,18 +105,21 @@ public class ClojurePlugin extends JavaPlugin {
     	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
     	
         String pluginName = getDescription().getName();
-        info("Disabling "+pluginName+" clojure Plugin");
         if ("clj-minecraft".equals(pluginName)) {
+        	info("Disabling main "+pluginName+" clojure Plugin");
         	onDisableClojureMainOrChildPlugin(selfCoreScript, selfDisableFunction);
         } else {
 			if ( wasSuccessfullyEnabled() ) {
 				try {
+					info("Disabling child "+pluginName+" clojure Plugin");
 					// so it was enabled(successfuly prior to this) then we can call to disable it
 					onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
 				} finally {
 					// regardless of the failure to disable, we consider it disabled
 					removeState();
 				}
+			}else {
+				info("did not attempt to disable "+pluginName+" clojure Plugin because it wasn't successfully enabled previously");
 			}
         }
     }
