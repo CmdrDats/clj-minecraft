@@ -67,33 +67,22 @@ public class ClojurePlugin extends BasePlugin {
 	public synchronized void onEnable() {
     	assert isEnabled():"it should be set to enabled before this is called, by bukkit";
     	
-    	boolean errored=false;
-		try {
-			String pluginName = getDescription().getName();
-			
-			
-			
-			if ( selfPluginName.equals( pluginName ) ) {
-				info( "Enabling main " + pluginName + " clojure Plugin" );
-				errored=!onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
-			} else {
-				info( "Enabling child " + pluginName + " clojure Plugin" );
-				errored=!onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
-			}
-
-			//handle both main and children plugins
-			if (!errored) {
-//				successfullyEnabled=true;
-				setSuccessfullyEnabled();
-//				pluginState.put( pluginName, Boolean.TRUE );
-			}
-    	}catch(Throwable t) {
-    		errored=true;
-    		t.printStackTrace();
-		} finally {
-			if ( errored ) {
-				setEnabled( !errored );//avoid calling onDisable if onEnable failed! actually this fails because it internally calls onDisable or onEnable if state changed
-			}
+		String pluginName = getDescription().getName();
+		
+		boolean errored = false;
+		if ( selfPluginName.equals( pluginName ) ) {
+			info( "Enabling main " + pluginName + " clojure Plugin" );
+			errored = !onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
+		} else {
+			info( "Enabling child " + pluginName + " clojure Plugin" );
+			errored = !onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
+		}
+		
+		// handle both main and children plugins
+		if ( !errored ) {
+			// successfullyEnabled=true;
+			setSuccessfullyEnabled();
+			// pluginState.put( pluginName, Boolean.TRUE );
 		}
     }
 
