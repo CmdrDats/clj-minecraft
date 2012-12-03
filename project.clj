@@ -9,6 +9,8 @@
   :javac-options [ "-d" "classes/" "-source" "1.6" "-target" "1.6"]
   :java-source-paths ["javasrc"]
 
+  ;:jvm-opts ["-enableassertions"] useless here, should be when starting bukkit instead
+  
   :warn-on-reflection true
   
   :repositories [["bukkit.snapshots" "http://repo.bukkit.org/content/repositories/snapshots"]]

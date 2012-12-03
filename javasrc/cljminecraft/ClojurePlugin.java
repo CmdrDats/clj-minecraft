@@ -3,10 +3,18 @@ import org.bukkit.*;
 import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.*;
 import java.lang.ClassLoader;
 import java.util.*;
 import java.util.logging.*;
 
+/**
+ * an instance of this class is create for every plugin (including the main clj-minecraft one) that depends on clj-minecraft, because
+ * it will have to have in its plugin.yml the following:<br>
+ * "main: cljminecraft.ClojurePlugin"
+ *
+ */
 public class ClojurePlugin extends JavaPlugin {
 	
 	public final static String selfCoreScript="cljminecraft.core";
@@ -21,10 +29,23 @@ public class ClojurePlugin extends JavaPlugin {
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private final static HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
 	
+	static {
+		boolean a=false;
+		assert (true == (a=true));
+		PrintStream boo;
+		if ( a ) {
+			boo = System.err;//[SEVERE] when enabled (bad for production use)
+		} else {
+			boo = System.out;//[INFO] when not enabled (good for production use)
+		}
+		
+		boo.println("assertions are "+(!a?"NOT ":"")+"enabled"+(!a?" (to enable pass jvm option -ea when starting bukkit":""));
+	}
 	
 	public ClojurePlugin() {
 		//constructor
-		info("CONSTRUCTOR");//XXX: hmm  an instance is create of this class for every child plugin (including the main one) 
+		info("CONSTRUCTOR");
+		//XXX: hmm  an instance is create of this class for every child plugin (including the main one) 
 	}
 	
     private boolean loadClojureFile(String cljFile) {
