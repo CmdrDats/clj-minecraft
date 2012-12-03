@@ -1,7 +1,11 @@
 package cljminecraft;
+import org.bukkit.*;
+import org.bukkit.command.*;
+import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.ClassLoader;
 import java.util.*;
+import java.util.logging.*;
 
 public class ClojurePlugin extends JavaPlugin {
 	
@@ -11,8 +15,17 @@ public class ClojurePlugin extends JavaPlugin {
 	public final static String childPlugin_EnableFunction="enable-plugin";
 	public final static String childPlugin_DisableFunction="disable-plugin";
 	
+	private final Logger logger=Bukkit.getLogger();
+//	private final static Logger logger=Logger.getLogger( "Minecraft" );
+	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
+	
+	
+	public ClojurePlugin() {
+		//constructor
+		info("CONSTRUCTOR");
+	}
 	
     private boolean loadClojureFile(String cljFile) {
         try {
@@ -61,7 +74,7 @@ public class ClojurePlugin extends JavaPlugin {
 		try {
 			String pluginName = getDescription().getName();
 			
-			System.out.println( "Enabling " + pluginName + " clojure Plugin" );
+			info( "Enabling " + pluginName + " clojure Plugin" );
 			
 			if ( "clj-minecraft".equals( pluginName ) ) {
 				errored=!onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
@@ -90,7 +103,7 @@ public class ClojurePlugin extends JavaPlugin {
     	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
     	
         String pluginName = getDescription().getName();
-        System.out.println("Disabling "+pluginName+" clojure Plugin");
+        info("Disabling "+pluginName+" clojure Plugin");
         if ("clj-minecraft".equals(pluginName)) {
         	onDisableClojureMainOrChildPlugin(selfCoreScript, selfDisableFunction);
         } else {
@@ -106,6 +119,24 @@ public class ClojurePlugin extends JavaPlugin {
         }
     }
     
+    public final void info(String msg) {
+    	PluginDescriptionFile descFile = getDescription();
+    	String pluginName = this.getClass().getName();
+    	if (null != descFile) pluginName=descFile.getName();
+    	tellConsole(ChatColor.GREEN+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
+    }
+    
+    public final void tellConsole( String msg ) {
+		// nvm; find another way to display colored msgs in console without having [INFO] prefix
+		// there's no other way it's done via ColouredConsoleSender of craftbukkit
+		// there are only two ways: colors+[INFO] prefix, or no colors + whichever prefix
+		ConsoleCommandSender cons = Bukkit.getConsoleSender();
+		if (null != cons) {
+			cons.sendMessage( msg );// this will log with [INFO] level
+		}else {
+			logger.info(ChatColor.stripColor( msg));
+		}
+	}
     
     public void setSuccessfullyEnabled() {
     	String pluginName = getDescription().getName();
