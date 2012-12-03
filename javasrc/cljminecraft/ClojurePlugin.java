@@ -27,7 +27,8 @@ public class ClojurePlugin extends JavaPlugin {
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
-	private final static HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
+//	private final static HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
+	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	
 	static {
 		boolean a=false;
@@ -45,7 +46,7 @@ public class ClojurePlugin extends JavaPlugin {
 	public ClojurePlugin() {
 		//constructor
 		info("CONSTRUCTOR");
-		//XXX: hmm  an instance is create of this class for every child plugin (including the main one) 
+		//XXX: an instance is create of this class for every child plugin (including the main one) 
 	}
 	
     private boolean loadClojureFile(String cljFile) {
@@ -103,9 +104,13 @@ public class ClojurePlugin extends JavaPlugin {
 			} else {
 				info( "Enabling child " + pluginName + " clojure Plugin" );
 				errored=!onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
-				if (!errored) {
-					pluginState.put( pluginName, Boolean.TRUE );
-				}
+			}
+
+			//handle both main and children plugins
+			if (!errored) {
+//				successfullyEnabled=true;
+				setSuccessfullyEnabled();
+//				pluginState.put( pluginName, Boolean.TRUE );
 			}
     	}catch(Throwable t) {
     		errored=true;
@@ -126,23 +131,24 @@ public class ClojurePlugin extends JavaPlugin {
     	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
     	
         String pluginName = getDescription().getName();
-        if ("clj-minecraft".equals(pluginName)) {
-        	info("Disabling main "+pluginName+" clojure Plugin");
-        	onDisableClojureMainOrChildPlugin(selfCoreScript, selfDisableFunction);
-        } else {
-			if ( wasSuccessfullyEnabled() ) {
-				try {
-					info("Disabling child "+pluginName+" clojure Plugin");
-					// so it was enabled(successfuly prior to this) then we can call to disable it
+		if ( wasSuccessfullyEnabled() ) {
+			// so it was enabled(successfully prior to this) then we can call to disable it
+			try {
+				if ( "clj-minecraft".equals( pluginName ) ) {
+					info( "Disabling main " + pluginName + " clojure Plugin" );
+					onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
+				} else {
+					info( "Disabling child " + pluginName + " clojure Plugin" );
 					onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
-				} finally {
-					// regardless of the failure to disable, we consider it disabled
-					removeState();
 				}
-			}else {
-				info("did not attempt to disable "+pluginName+" clojure Plugin because it wasn't successfully enabled previously");
+			} finally {
+				// regardless of the failure to disable, we consider it disabled
+				removeEnabledState();
 			}
-        }
+		} else {
+			info( "did not attempt to disable " + pluginName
+				+ " clojure Plugin because it wasn't successfully enabled previously" );
+		}
     }
     
     public final void info(String msg) {
@@ -165,26 +171,30 @@ public class ClojurePlugin extends JavaPlugin {
 	}
     
     public void setSuccessfullyEnabled() {
-    	String pluginName = getDescription().getName();
+//    	String pluginName = getDescription().getName();
     	
-    	Boolean wasAlreadyEnabled = pluginState.get( pluginName );
-		assert ((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
+//    	Boolean wasAlreadyEnabled = pluginState.get( pluginName );
+		assert (null == successfullyEnabled) || (false == successfullyEnabled.booleanValue())
+		//((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
 			:"should not have been already enabled without getting disabled first";
 		
-    	pluginState.put( pluginName, Boolean.TRUE );
+//    	pluginState.put( pluginName, Boolean.TRUE );
+    	successfullyEnabled=Boolean.TRUE;
     }
     
-    public void removeState() {
-    	String pluginName = getDescription().getName();
-    	Boolean state = pluginState.get( pluginName);
-		Boolean ret = pluginState.remove( pluginName );// no point keeping the false value in I guess
-		assert state == ret;
+    public void removeEnabledState() {
+//    	String pluginName = getDescription().getName();
+//    	Boolean state = pluginState.get( pluginName);
+//		Boolean ret = pluginState.remove( pluginName );// no point keeping the false value in I guess
+//		assert state == ret;
+    	assert ((null == successfullyEnabled) || (true == successfullyEnabled.booleanValue()));
+		successfullyEnabled=null;
     }
     
     public boolean wasSuccessfullyEnabled() {
-    	String pluginName = getDescription().getName();
-    	Boolean state = pluginState.get( pluginName);
-    	return ((null != state) && (true == state.booleanValue()));
+//    	String pluginName = getDescription().getName();
+//    	Boolean state = pluginState.get( pluginName);
+    	return ((null != successfullyEnabled) && (true == successfullyEnabled.booleanValue()));
     }
 /*in plugin.yml of your clojure plugin which depends on clj-minecraft, these are required:
  * 
