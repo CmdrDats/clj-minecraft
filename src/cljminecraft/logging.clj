@@ -1,11 +1,11 @@
 (ns cljminecraft.logging
   (:require [clojure.tools.logging :as logging]))
 
-(defmacro info [str]
-  `(logging/info (.getName ~(symbol "*ns*")) ":" ~str))
+(defmacro info [fmt & args]
+  `(logging/info (format ~(str (.getName *ns*) ":" fmt) ~@args)))
 
-(defmacro warn [str]
-  `(logging/warn (.getName ~(symbol "*ns*")) ":" ~str))
+(defmacro warn [fmt & args]
+  `(logging/warn (format ~(str (.getName *ns*) ":" fmt) ~@args)))
 
-(defmacro debug [str]
-  `(logging/debug (.getName ~(symbol "*ns*")) ":" ~str))
+(defmacro debug [fmt & args]
+  `(logging/debug (format ~(str (.getName *ns*) ":" fmt) ~@args)))
