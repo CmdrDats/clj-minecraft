@@ -1,23 +1,21 @@
 (ns cljminecraft.config
   "Provides a thin wrapper for bukkit config"
-  (:require [cljminecraft.logging :as logging]))
+  (:require [cljminecraft.logging :as logging])
+  (:require [cljminecraft.util :as util]))
 
-(defn load-config 
-  "Loads the bukkit config file for the given plugin and sets defaults"
-  [plugin defaults]
-  (let [bukkit-config (.getConfig plugin)
-        config-defaults (if (nil? defaults) {} defaults)]
-    (.addDefaults bukkit-config config-defaults)
-    {:bukkit-config bukkit-config :defaults config-defaults}))
+(defn config-defaults 
+  "Loads the bukkit config file for the given plugin and sets defaults, returns a configuration object"
+  [plugin]
+  (.saveDefaultConfig plugin))
 
-(defn get-keyword 
-  "Gets the keyword for the specified entry key, or the default if no entry
-exists or the entry is not in the set of accepted values. If no such default
-exists, returns nil."
-  [config entry-key accepted-values]
-  (let [config-entry (keyword (.get (:bukkit-config config) entry-key))]
-    (if (contains? accepted-values config-entry)
-      config-entry
-      (let [default (get (:defaults config) entry-key)]
-        (logging/warn (format "Unrecognised repl type: %s, using default %s" config-entry (pr-str keyword)))
-        default))))
+(defn defcn [type]
+  `(defn ~(symbol (str "get-" (name type))) [~(symbol "plugin") ~(symbol "path")]
+     (try
+       (~(symbol (str ".get" (util/camelcase (name type)))) (.getConfig ~(symbol "plugin")) ~(symbol "path"))
+       (catch Exception ~(symbol "e") nil))))
+
+(defmacro defcns [& types]
+  (let [forms (map defcn types)]
+    `(do ~@forms)))
+
+(defcns string int boolean double long list string-list integer-list boolean-list double-list float-list long-list byte-list character-list short-list map-list vector offline-player item-stack configuration-section)

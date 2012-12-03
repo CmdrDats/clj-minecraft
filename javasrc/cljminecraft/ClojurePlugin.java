@@ -41,6 +41,7 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Enabling "+name+" clojure Plugin");
 
+        loadClojureFile(name+"/core");
         onEnable("cljminecraft.core", "on-enable");
     }
 

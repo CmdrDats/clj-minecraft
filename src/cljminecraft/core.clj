@@ -1,50 +1,26 @@
 (ns cljminecraft.core
-  (:require [clojure.set :as set]
-            [cljminecraft.state :as state]
+  (:require [cljminecraft.bukkit :as bk]
             [cljminecraft.events :as events]
             [cljminecraft.util :as util]
             [cljminecraft.logging :as log]
             [cljminecraft.config :as cfg]
+            [cljminecraft.files]
             [clojure.tools.nrepl.server :refer (start-server stop-server)]))
 
-
-
-(defonce plugins (ref {}))
-
-(defonce repl-types* #{:nrepl :swank})
-
-(defonce repl-type (ref nil))
-
-(defonce repl-server (agent nil))
-
-
-(defn broadcast-msg [message]
-  (.broadcastMessage (:server state/server) message))
-
-
-(defn start-clojure [new-repl-type]
-    (dosync
-      (when (nil? @repl-type)
-        (ref-set repl-type new-repl-type)
-        (send-off repl-server
-                  (fn [_] (case new-repl-type
-                            :nrepl
-                            (let [nrepl-port 4006]
-                              (log/info (format "Starting nRepl server on port %d" nrepl-port))
-                              (start-server :port nrepl-port))))))))
-
-(defn events []
-  (events/events))
+(defn start-repl [host port]
+  (log/info "Starting repl on host: %s, port %s" host port)
+  (start-server :host host :port port))
 
 (defn on-enable [plugin]
-  (state/register-server (state/get-server plugin))
-  (let [repl-key "repl"
-        config (cfg/load-config plugin {repl-key :nrepl})]
-    (start-clojure (cfg/get-keyword config repl-key repl-types*)))
-  (log/info "Clojure started")
-  (events/register-eventlist @state/server (events)))
+  (cfg/config-defaults plugin)
+  (if (cfg/get-boolean plugin "repl.enabled")
+    (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))
+    (log/info "Repl options: " (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
+  (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
+    (resolved plugin))
+  (log/info "Clojure started - %s" plugin))
 
 (defn on-disable [plugin]
-  (log/info "Clojure stopped"))
+  (log/info "Clojure stopped - %s" plugin))
 
 
