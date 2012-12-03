@@ -50,7 +50,7 @@ public class ClojurePlugin extends BasePlugin {
 	}
     
     public Object invokeClojureFunction(String ns, String funcName) {
-    	return clojure.lang.RT.var(ns, funcName).invoke(this);
+    	return clojure.lang.RT.var(ns, funcName).invoke(this);//passing the plugin instance as param
     }
 
     
