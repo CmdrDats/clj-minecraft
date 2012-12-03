@@ -11,6 +11,7 @@ public class ClojurePlugin extends JavaPlugin {
 	public final static String childPlugin_EnableFunction="enable-plugin";
 	public final static String childPlugin_DisableFunction="disable-plugin";
 	
+	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
 	
     private boolean loadClojureFile(String cljFile) {
@@ -60,10 +61,6 @@ public class ClojurePlugin extends JavaPlugin {
 		try {
 			String pluginName = getDescription().getName();
 			
-			Boolean wasAlreadyEnabled = pluginState.get( pluginName );
-			assert ((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
-				:"should not have been already enabled without getting disabled first";
-			
 			System.out.println( "Enabling " + pluginName + " clojure Plugin" );
 			
 			if ( "clj-minecraft".equals( pluginName ) ) {
@@ -97,20 +94,41 @@ public class ClojurePlugin extends JavaPlugin {
         if ("clj-minecraft".equals(pluginName)) {
         	onDisableClojureMainOrChildPlugin(selfCoreScript, selfDisableFunction);
         } else {
-        	Boolean state = pluginState.get( pluginName);
-        	try {
-        	if ((null != state) && (true == state.booleanValue())) {
-        		//so it was enabled(successfuly prior to this) then we can call to disable it
-        		onDisableClojureMainOrChildPlugin(pluginName+".core", childPlugin_DisableFunction);
-        	}
-        	}finally{
-        		//regardless of the failure to disable, we consider it disabled
-        		Boolean ret = pluginState.remove( pluginName );//no point keeping the false value in I guess
-        		assert state == ret || state.equals( ret );
-        	}
+			if ( wasSuccessfullyEnabled() ) {
+				try {
+					// so it was enabled(successfuly prior to this) then we can call to disable it
+					onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
+				} finally {
+					// regardless of the failure to disable, we consider it disabled
+					removeState();
+				}
+			}
         }
     }
     
+    
+    public void setSuccessfullyEnabled() {
+    	String pluginName = getDescription().getName();
+    	
+    	Boolean wasAlreadyEnabled = pluginState.get( pluginName );
+		assert ((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
+			:"should not have been already enabled without getting disabled first";
+		
+    	pluginState.put( pluginName, Boolean.TRUE );
+    }
+    
+    public void removeState() {
+    	String pluginName = getDescription().getName();
+    	Boolean state = pluginState.get( pluginName);
+		Boolean ret = pluginState.remove( pluginName );// no point keeping the false value in I guess
+		assert state == ret;
+    }
+    
+    public boolean wasSuccessfullyEnabled() {
+    	String pluginName = getDescription().getName();
+    	Boolean state = pluginState.get( pluginName);
+    	return ((null != state) && (true == state.booleanValue()));
+    }
 /*in plugin.yml of your clojure plugin which depends on clj-minecraft, these are required:
  * 
  * main: cljminecraft.ClojurePlugin
