@@ -23,6 +23,7 @@ public class ClojurePlugin extends BasePlugin {
 	public final static String selfDisableFunction="on-disable";
 	public final static String childPlugin_EnableFunction="enable-plugin";
 	public final static String childPlugin_DisableFunction="disable-plugin";
+	public final static String childPlugin_CoreScript="core";
 	
     private boolean loadClojureFile(String cljFile) {
         try {
@@ -74,7 +75,7 @@ public class ClojurePlugin extends BasePlugin {
 			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			success = onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
+			success = onEnableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_EnableFunction );
 		}
 		
 		return success;
@@ -93,7 +94,7 @@ public class ClojurePlugin extends BasePlugin {
 			onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
 		} else {
 			info( "Disabling child " + pluginName + " clojure Plugin" );
-			onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
+			onDisableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_DisableFunction );
 		}
     }
     
