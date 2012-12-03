@@ -82,4 +82,49 @@ public abstract class BasePlugin extends JavaPlugin{
 //    	Boolean state = pluginState.get( pluginName);
     	return ((null != successfullyEnabled) && (true == successfullyEnabled.booleanValue()));
     }
+    
+    /**
+     * if it doesn't return true, then stop() will not be called<br>
+     * @return true if successfully enabled or false(or thrown exceptions) otherwise<br>
+     */
+    public abstract boolean start();
+	
+	
+	/**
+	 * called only if start() didn't fail (that is: it returned true and didn't throw exceptions)
+	 * 
+	 */
+	public abstract void stop();
+
+	
+    //synchronized not needed because it's an instance method and each plugin has a different instance
+	@Override
+	public final void onEnable() {
+		assert isEnabled() : "it should be set to enabled before this is called, by bukkit";
+		
+		if ( start() ) {
+			setSuccessfullyEnabled();
+		}
+	}
+	
+	
+	@Override
+	public final void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
+    	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
+    	
+        String pluginName = getDescription().getName();
+		if ( wasSuccessfullyEnabled() ) {
+			// so it was enabled(successfully prior to this) then we can call to disable it
+			try {
+				stop();//return state unused
+			} finally {
+				// regardless of the failure to disable, we consider it disabled
+				removeEnabledState();
+			}
+		} else {
+			info( "did not attempt to disable " + pluginName
+				+ " clojure Plugin because it wasn't successfully enabled previously" );
+		}
+    }
+	
 }

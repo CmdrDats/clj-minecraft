@@ -64,55 +64,36 @@ public class ClojurePlugin extends BasePlugin {
     }
 
     @Override
-	public void onEnable() {
-    	assert isEnabled():"it should be set to enabled before this is called, by bukkit";
+	public boolean start() {
     	
 		String pluginName = getDescription().getName();
 		
-		boolean errored = false;
+		boolean success = false;
 		if ( selfPluginName.equals( pluginName ) ) {
 			info( "Enabling main " + pluginName + " clojure Plugin" );
-			errored = !onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
+			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			errored = !onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
+			success = onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
 		}
 		
-		// handle both main and children plugins
-		if ( !errored ) {
-			// successfullyEnabled=true;
-			setSuccessfullyEnabled();
-			// pluginState.put( pluginName, Boolean.TRUE );
-		}
+		return success;
     }
 
     public void onDisableClojureMainOrChildPlugin(String ns, String disableFunction) {
     	invokeClojureFunction(ns, disableFunction);
     }
 
-    //synchronized not needed because it's an instance method and each plugin has a different instance
+    
     @Override
-	public void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
-    	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
-    	
-        String pluginName = getDescription().getName();
-		if ( wasSuccessfullyEnabled() ) {
-			// so it was enabled(successfully prior to this) then we can call to disable it
-			try {
-				if ( selfPluginName.equals( pluginName ) ) {
-					info( "Disabling main " + pluginName + " clojure Plugin" );
-					onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
-				} else {
-					info( "Disabling child " + pluginName + " clojure Plugin" );
-					onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
-				}
-			} finally {
-				// regardless of the failure to disable, we consider it disabled
-				removeEnabledState();
-			}
+	public void stop() {//called only when onEnable didn't fail (if we did the logic right)
+		String pluginName = getDescription().getName();
+		if ( selfPluginName.equals( pluginName ) ) {
+			info( "Disabling main " + pluginName + " clojure Plugin" );
+			onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
 		} else {
-			info( "did not attempt to disable " + pluginName
-				+ " clojure Plugin because it wasn't successfully enabled previously" );
+			info( "Disabling child " + pluginName + " clojure Plugin" );
+			onDisableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_DisableFunction );
 		}
     }
     
