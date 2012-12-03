@@ -54,9 +54,9 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Disabling "+name+" clojure Plugin");
         if ("clj-minecraft".equals(name)) {
-            onEnable("cljminecraft.core", "on-disable");
+        	onDisable("cljminecraft.core", "on-disable");
         } else {
-            onEnable(name+".core", "disable-plugin");
+            onDisable(name+".core", "disable-plugin");
         }
     }
 }
