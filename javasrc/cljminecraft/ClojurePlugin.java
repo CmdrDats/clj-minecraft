@@ -64,7 +64,7 @@ public class ClojurePlugin extends BasePlugin {
     }
 
     @Override
-	public synchronized void onEnable() {
+	public void onEnable() {
     	assert isEnabled():"it should be set to enabled before this is called, by bukkit";
     	
 		String pluginName = getDescription().getName();
@@ -90,8 +90,9 @@ public class ClojurePlugin extends BasePlugin {
     	invokeClojureFunction(ns, disableFunction);
     }
 
+    //synchronized not needed because it's an instance method and each plugin has a different instance
     @Override
-	public synchronized void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
+	public void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
     	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
     	
         String pluginName = getDescription().getName();
