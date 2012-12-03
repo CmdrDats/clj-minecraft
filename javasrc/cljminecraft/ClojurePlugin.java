@@ -20,21 +20,51 @@ public class ClojurePlugin extends JavaPlugin {
     	
     }
     
-    public void onEnable(String ns, String enableFunction) {
+    public boolean loadClojureNameSpace(String ns) {
         try {
             ClassLoader previous = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
 
-            clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
-            System.out.println("loadscript: " + ns.replaceAll("[.]", "/"));
-            clojure.lang.RT.var(ns, enableFunction).invoke(this);
-            
+            String cljFile = ns.replaceAll("[.]", "/")+".clj";
+            System.out.println("loading clojure file: " + cljFile);
+            clojure.lang.RT.loadResourceScript(cljFile);
 
             Thread.currentThread().setContextClassLoader(previous);
+            return true;
         } catch (Exception e) {
             System.out.println("Something broke setting up Clojure");
             e.printStackTrace();
+            return false;
         }
+    	
+    }
+    
+    public Object invokeClojureFunction(String ns, String funcName) {
+    	return clojure.lang.RT.var(ns, funcName).invoke(this);
+    }
+
+
+    
+    public void onEnableClojureScript(String ns, String enableFunction) {
+    	if (loadClojureNameSpace(ns)) {
+    		invokeClojureFunction(ns, enableFunction);
+//    		clojure.lang.RT.var(ns, enableFunction).invoke(this);
+    	}
+//        try {
+//            ClassLoader previous = Thread.currentThread().getContextClassLoader();
+//            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+//
+//            System.out.println("loadscript: " + ns.replaceAll("[.]", "/"));
+//            clojure.lang.RT.loadResourceScript(ns.replaceAll("[.]", "/")+".clj");
+//            
+//            clojure.lang.RT.var(ns, enableFunction).invoke(this);
+//            
+//
+//            Thread.currentThread().setContextClassLoader(previous);
+//        } catch (Exception e) {
+//            System.out.println("Something broke setting up Clojure");
+//            e.printStackTrace();
+//        }
     }
 
     @Override
@@ -42,11 +72,16 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Enabling "+name+" clojure Plugin");
 
-        onEnable("cljminecraft.core", "on-enable");
+        if ("clj-minecraft".equals(name)) {
+        	onEnableClojureScript("cljminecraft.core", "on-enable");
+        } else {
+        	onEnableClojureScript(name+".core", "enable-plugin");
+        }
     }
 
-    public void onDisable(String ns, String disableFunction) {
-        clojure.lang.RT.var(ns, disableFunction).invoke(this);
+    public void onDisableClojureScript(String ns, String disableFunction) {
+//        clojure.lang.RT.var(ns, disableFunction).invoke(this);
+    	invokeClojureFunction(ns, disableFunction);
     }
 
     @Override
@@ -54,9 +89,15 @@ public class ClojurePlugin extends JavaPlugin {
         String name = getDescription().getName();
         System.out.println("Disabling "+name+" clojure Plugin");
         if ("clj-minecraft".equals(name)) {
-        	onDisable("cljminecraft.core", "on-disable");
+        	onDisableClojureScript("cljminecraft.core", "on-disable");
         } else {
-            onDisable(name+".core", "disable-plugin");
+            onDisableClojureScript(name+".core", "disable-plugin");
         }
     }
+    
+/*in plugin.yml of your clojure plugin which depends on clj-minecraft, these are required:
+ * main: cljminecraft.ClojurePlugin
+ * depend: [clj-minecraft]
+ * class-loader-of: clj-minecraft
+  */  
 }
