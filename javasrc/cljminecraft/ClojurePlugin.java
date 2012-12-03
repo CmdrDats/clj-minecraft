@@ -10,13 +10,14 @@ import java.util.*;
 import java.util.logging.*;
 
 /**
- * an instance of this class is create for every plugin (including the main clj-minecraft one) that depends on clj-minecraft, because
+ * an instance of this class is create for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
  * it will have to have in its plugin.yml the following:<br>
  * "main: cljminecraft.ClojurePlugin"
  *
  */
 public class ClojurePlugin extends BasePlugin {
 	
+	public final static String selfPluginName="cljminecraft";
 	public final static String selfCoreScript="cljminecraft.core";
 	public final static String selfEnableFunction="on-enable";
 	public final static String selfDisableFunction="on-disable";
@@ -72,7 +73,7 @@ public class ClojurePlugin extends BasePlugin {
 			
 			
 			
-			if ( "clj-minecraft".equals( pluginName ) ) {
+			if ( selfPluginName.equals( pluginName ) ) {
 				info( "Enabling main " + pluginName + " clojure Plugin" );
 				errored=!onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 			} else {
@@ -108,7 +109,7 @@ public class ClojurePlugin extends BasePlugin {
 		if ( wasSuccessfullyEnabled() ) {
 			// so it was enabled(successfully prior to this) then we can call to disable it
 			try {
-				if ( "clj-minecraft".equals( pluginName ) ) {
+				if ( selfPluginName.equals( pluginName ) ) {
 					info( "Disabling main " + pluginName + " clojure Plugin" );
 					onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
 				} else {
@@ -126,11 +127,11 @@ public class ClojurePlugin extends BasePlugin {
     }
     
 
-/*in plugin.yml of your clojure plugin which depends on clj-minecraft, these are required:
+/*in plugin.yml of your clojure plugin which depends on cljminecraft, these are required:
  * 
  * main: cljminecraft.ClojurePlugin
- * depend: [clj-minecraft]
- * class-loader-of: clj-minecraft
+ * depend: [cljminecraft]
+ * class-loader-of: cljminecraft
  * 
  * and the name of your plugin(in your plugin.yml) should be the ns name of core.clj and core.clj should be the main script 
  * which includes the enable/disable functions which are defined by the constants: childPlugin_EnableFunction and
