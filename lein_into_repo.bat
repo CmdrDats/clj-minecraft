@@ -7,4 +7,4 @@ rem every time you make a change in this project you should run this .bat file t
 
 set JAVA_CMD="c:\program files\java\jdk1.6.0_31\bin\java.exe"
 call lein install
-@pause
+if NOT "%1" == "nopause" @pause
