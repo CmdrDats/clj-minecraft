@@ -1,6 +1,7 @@
 package cljminecraft;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.lang.ClassLoader;
+import java.util.*;
 
 public class ClojurePlugin extends JavaPlugin {
 	
@@ -9,6 +10,8 @@ public class ClojurePlugin extends JavaPlugin {
 	public final static String selfDisableFunction="on-disable";
 	public final static String childPlugin_EnableFunction="enable-plugin";
 	public final static String childPlugin_DisableFunction="disable-plugin";
+	
+	private HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
 	
     private boolean loadClojureFile(String cljFile) {
         try {
@@ -27,7 +30,6 @@ public class ClojurePlugin extends JavaPlugin {
             e.printStackTrace();
             return false;
         }
-    	
     }
     
 	
@@ -41,7 +43,7 @@ public class ClojurePlugin extends JavaPlugin {
     }
 
     
-    public boolean onEnableClojureChildPlugin(String ns, String enableFunction) {
+    public boolean onEnableClojureMainOrChildPlugin(String ns, String enableFunction) {
     	if (loadClojureNameSpace(ns)) {
     		invokeClojureFunction(ns, enableFunction);
     		return true;
@@ -51,16 +53,26 @@ public class ClojurePlugin extends JavaPlugin {
     }
 
     @Override
-	public void onEnable() {
+	public synchronized void onEnable() {
+    	assert isEnabled():"it should be set to enabled before this is called, by bukkit";
+    	
     	boolean errored=false;
 		try {
 			String pluginName = getDescription().getName();
+			
+			Boolean wasAlreadyEnabled = pluginState.get( pluginName );
+			assert ((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
+				:"should not have been already enabled without getting disabled first";
+			
 			System.out.println( "Enabling " + pluginName + " clojure Plugin" );
 			
 			if ( "clj-minecraft".equals( pluginName ) ) {
-				errored=!onEnableClojureChildPlugin( selfCoreScript, selfEnableFunction );
+				errored=!onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 			} else {
-				errored=!onEnableClojureChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
+				errored=!onEnableClojureMainOrChildPlugin( pluginName + ".core", childPlugin_EnableFunction );
+				if (!errored) {
+					pluginState.put( pluginName, Boolean.TRUE );
+				}
 			}
     	}catch(Throwable t) {
     		errored=true;
@@ -72,18 +84,30 @@ public class ClojurePlugin extends JavaPlugin {
 		}
     }
 
-    public void onDisableClojureChildPlugin(String ns, String disableFunction) {
+    public void onDisableClojureMainOrChildPlugin(String ns, String disableFunction) {
     	invokeClojureFunction(ns, disableFunction);
     }
 
     @Override
-	public void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
+	public synchronized void onDisable() {//called only when onEnable didn't fail (if we did the logic right)
+    	assert !isEnabled():"it should be set to disabled before this is called, by bukkit";
+    	
         String pluginName = getDescription().getName();
         System.out.println("Disabling "+pluginName+" clojure Plugin");
         if ("clj-minecraft".equals(pluginName)) {
-        	onDisableClojureChildPlugin(selfCoreScript, selfDisableFunction);
+        	onDisableClojureMainOrChildPlugin(selfCoreScript, selfDisableFunction);
         } else {
-            onDisableClojureChildPlugin(pluginName+".core", childPlugin_DisableFunction);
+        	Boolean state = pluginState.get( pluginName);
+        	try {
+        	if ((null != state) && (true == state.booleanValue())) {
+        		//so it was enabled(successfuly prior to this) then we can call to disable it
+        		onDisableClojureMainOrChildPlugin(pluginName+".core", childPlugin_DisableFunction);
+        	}
+        	}finally{
+        		//regardless of the failure to disable, we consider it disabled
+        		Boolean ret = pluginState.remove( pluginName );//no point keeping the false value in I guess
+        		assert state == ret || state.equals( ret );
+        	}
         }
     }
     
