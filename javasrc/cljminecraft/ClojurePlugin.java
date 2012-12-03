@@ -55,14 +55,14 @@ public class ClojurePlugin extends BasePlugin {
     }
 
     
-    public boolean onEnableClojureMainOrChildPlugin(String ns, String enableFunction) {
-    	if (loadClojureNameSpace(ns)) {
-    		invokeClojureFunction(ns, enableFunction);
-    		return true;
-    	}else{
-    		return false;
-    	}
-    }
+//    public boolean onEnableClojureMainOrChildPlugin(String ns, String enableFunction) {
+//    	if (loadClojureNameSpace(ns)) {
+//    		invokeClojureFunction(ns, enableFunction);
+//    		return true;
+//    	}else{
+//    		return false;
+//    	}
+//    }
 
     @Override
 	public boolean start() {
@@ -72,11 +72,14 @@ public class ClojurePlugin extends BasePlugin {
 		boolean success = false;
 		if ( selfPluginName.equals( pluginName ) ) {
 			info( "Enabling main " + pluginName + " clojure Plugin" );
-			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
+			success = loadClojureNameSpace(selfCoreScript);
+//			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			success = onEnableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_EnableFunction );
+			success = loadClojureNameSpace(pluginName + "."+childPlugin_CoreScript);
 		}
+
+		invokeClojureFunction(selfCoreScript, selfEnableFunction );
 		
 		return success;
     }
