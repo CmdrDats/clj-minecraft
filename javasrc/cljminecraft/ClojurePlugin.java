@@ -99,7 +99,15 @@ public class ClojurePlugin extends BasePlugin {
 		try {
 			InputStreamReader isr = new InputStreamReader( is, UTF8 );
 			try {
-				clojure.lang.Compiler.load( isr, name, file );//"memorystone/core.clj" and "core.clj"
+				ClassLoader previous = Thread.currentThread().getContextClassLoader();
+				Thread.currentThread().setContextClassLoader(classLoader);
+				try {
+					clojure.lang.Compiler.load( isr, name, file );//"memorystone/core.clj" and "core.clj"
+					//the above call also loads "clojure/core" (if first time RT class initing)
+					//which means it's using current thread's classloader
+				}finally{
+					Thread.currentThread().setContextClassLoader(previous);
+				}
 			} finally {
 				isr.close();//FIXME: if this throws it should not overwrite previously thrown exception
 			}
@@ -119,21 +127,23 @@ public class ClojurePlugin extends BasePlugin {
 			URL urls [] = {this.getFile().toURI().toURL()};
 			URLClassLoader cl = new URLClassLoader( urls, cls.getClassLoader() );
 			
-			ClassLoader previous = Thread.currentThread().getContextClassLoader();
-			Thread.currentThread().setContextClassLoader(cl);
+//			ClassLoader previous = Thread.currentThread().getContextClassLoader();
+//			Thread.currentThread().setContextClassLoader(new clojure.lang.DynamicClassLoader(previous));
 			
 			try {
 				System.out.println( "loading clojure file: " + cljFile );
-				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER,
-					clojure.lang.RT.F ) );
+//				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER, clojure.lang.RT.F ) );
+
+				//the problem with this is that RT is trying to load "clojure/core"
+//				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER, clojure.lang.RT.F ) );
 				
 				loadClojureResourceScript( cljFile, cl );
 			}finally {
 //				Thread.currentThread().setContextClassLoader(previous);
 				try {
-					clojure.lang.Var.popThreadBindings();
+//					clojure.lang.Var.popThreadBindings();
 				} finally {
-					Thread.currentThread().setContextClassLoader( previous );
+//					Thread.currentThread().setContextClassLoader( previous );
 				}
 			}
 			
