@@ -28,6 +28,7 @@ public class ClojurePlugin extends BasePlugin {
     private boolean loadClojureFile(String cljFile) {
     	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
+        	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
 			ClassLoader previous = Thread.currentThread().getContextClassLoader();
 			Thread.currentThread().setContextClassLoader( this.getClass().getClassLoader() );
 			try {
