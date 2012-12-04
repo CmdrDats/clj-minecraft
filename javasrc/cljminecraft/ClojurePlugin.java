@@ -41,22 +41,6 @@ public class ClojurePlugin extends BasePlugin {
         System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
 	}
 	
-	private class JFL extends URLClassLoader {
-
-		public JFL( URL[] urls, ClassLoader parent ) {
-			super( urls, parent );
-			try {
-				String path = "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar";
-				String urlPath = "jar:file://" + path + "!/";
-			    addURL (new URL (urlPath));
-			    //addURL(new URL( "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
-			} catch ( MalformedURLException e ) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-		
-	}
 	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
 	//due to them using the same classloader (as CmdrDats said)
@@ -76,10 +60,19 @@ public class ClojurePlugin extends BasePlugin {
 			Class<?> cls = Class.forName("cljminecraft.ClojurePlugin");
 			System.out.println(cls);
 
-			URLClassLoader cl = new JFL(((URLClassLoader)
+			showClassPath("6", cls.getClassLoader());
+			String path = "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar";
+			String urlPath = "jar:file://" + path + "!/";
+//		    addURL (new URL (urlPath));
+			URL urls [] = {new URL (urlPath)};
+			URLClassLoader cl = new URLClassLoader(
+//				((URLClassLoader)
 //					this.getClass().getClassLoader()
-					cls.getClassLoader()
-					).getURLs(), cls.getClassLoader());
+//					cls.getClassLoader()
+//					).getURLs()
+					urls
+					,cls.getClassLoader()
+					);
 			
 			
 			Thread.currentThread().setContextClassLoader(
@@ -91,8 +84,8 @@ public class ClojurePlugin extends BasePlugin {
 //			Thread.currentThread().setContextClassLoader(cl);
 			
 			try {
-				showClassPath("4", ClassLoader.getSystemClassLoader());
 				showClassPath("5", Thread.currentThread().getContextClassLoader());
+				showClassPath("4", ClassLoader.getSystemClassLoader());
 		        
 //	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
 				
