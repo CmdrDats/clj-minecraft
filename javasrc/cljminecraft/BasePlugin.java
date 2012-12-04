@@ -78,7 +78,7 @@ public abstract class BasePlugin extends JavaPlugin{
 				, clojure.lang.RT.T, true);
 			//(set! *warn-on-reflection* true)
 		}finally{
-			Thread.currentThread().setContextClassLoader(previous);//hmm not restoring this works :O
+			Thread.currentThread().setContextClassLoader(previous);
 		}
 	}
 	
