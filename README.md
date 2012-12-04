@@ -98,6 +98,15 @@ you can hook into this with whatever editor supports nRepl so that you
 can livecode, inspect the world and push new code for your plugin
 across. This is a highly recommended way of building your plugins!
 
+## Contributions
+
+A huge thanks to aiscott and basicsensei for their contributions to clj-minecraft!
+
+Please feel free to fork and make pull requests if you want to contribute,
+I love code contributions - it makes the whole project that much more well rounded.
+On that note, we're desperately needing documentation, so if you're keen to contribute
+to the wiki, let me know.
+
 ## License
 
 Copyright (C) 2012 Deon Moolman
