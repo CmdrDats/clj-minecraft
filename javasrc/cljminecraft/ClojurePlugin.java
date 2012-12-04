@@ -87,6 +87,8 @@ public class ClojurePlugin extends BasePlugin {
 			System.out.println( "About to load clojure file: " + cljFile );
 			
 			loadClojureResourceScript( cljFile, getOurClassLoader() );
+			//XXX: setting this so that any future load scripts actually use this classloader :/
+			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
 
 			return true;
 		} catch ( Exception e ) {
