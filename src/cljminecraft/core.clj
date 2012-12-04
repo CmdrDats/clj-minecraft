@@ -18,8 +18,26 @@
   (if (cfg/get-boolean plugin "repl.enabled")
     (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))
     (log/info "Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
-  (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
-    (resolved plugin))
+
+  (let [plugin-name (.getName plugin)]
+    (when (not (.equals plugin-name "cljminecraft"))
+      (binding [*use-context-classloader* true]
+        (let [cl (.getContextClassLoader (Thread/currentThread))]
+          (.setContextClassLoader (Thread/currentThread) (clojure.lang.DynamicClassLoader. cl))
+          )
+        (load (str plugin-name "/core"))
+        (. plugin info "after load")
+        (let [resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
+          (if (not resolved)
+            (. plugin info "plugin didn't have a start method")
+            (do 
+              (. plugin info "calling child start")
+              (resolved plugin))
+            )
+          )
+        )
+      )
+    )
   (log/info "Clojure started - %s" plugin))
 
 (defn on-disable
