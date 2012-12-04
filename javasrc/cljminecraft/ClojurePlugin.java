@@ -61,10 +61,17 @@ public class ClojurePlugin extends BasePlugin {
 			System.out.println(cls);
 
 			showClassPath("6", cls.getClassLoader());
-			String path = "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar";
-			String urlPath = "jar:file://" + path + "!/";
+			System.out.println("classloader of: "+getDescription().getClassLoaderOf());
+//			getDescription().getMain()
+			System.out.println(getDataFolder());
+			System.out.println(this.getClass().getProtectionDomain().getCodeSource().getLocation());
+			System.out.println(Bukkit.getPluginManager().getPlugin(getDescription().getName()).getClass().getProtectionDomain().getCodeSource().getLocation());
+			System.out.println(this.getFile());
+			System.out.println(this.getFile().toURI().toURL());//getAbsoluteFile().toURI());
+//			String path = "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar";
+//			String urlPath = "jar:file://" + path + "!/";
 //		    addURL (new URL (urlPath));
-			URL urls [] = {new URL (urlPath)};
+			URL urls [] = {this.getFile().toURI().toURL()};
 			URLClassLoader cl = new URLClassLoader(
 //				((URLClassLoader)
 //					this.getClass().getClassLoader()

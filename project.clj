@@ -3,6 +3,7 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.logging "0.2.3"]
                  [org.clojure/tools.nrepl "0.2.0-RC1"]
+;                 [org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT" :classifier "sources"] epic fail trying to get some javadoc in eclipse
                  [org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT"]
                  [clojure-complete "0.2.2"]
                  [cheshire "2.0.4"]
