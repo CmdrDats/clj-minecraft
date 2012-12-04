@@ -10,8 +10,6 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
-import clojure.lang.*;
-import clojure.lang.Compiler;
 
 
 public abstract class BasePlugin extends JavaPlugin{
@@ -44,10 +42,13 @@ public abstract class BasePlugin extends JavaPlugin{
 			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
 			System.out.flush();
 			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
-			DynamicClassLoader newCL = (DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
+			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
 				@Override
 				public Object run() {
-					return new DynamicClassLoader( this.getClass().getClassLoader() );
+					showClassPath( "inRun1", this.getClass().getClassLoader() );
+					showClassPath( "inRun2", Thread.currentThread().getContextClassLoader() );
+					assert this.getClass().getClassLoader() == ClojurePlugin.class.getClassLoader();//even though "this" is different
+					return new clojure.lang.DynamicClassLoader( this.getClass().getClassLoader() );
 				}
 			} );
 			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
