@@ -49,7 +49,7 @@ public class ClojurePlugin extends BasePlugin {
         try {
         	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
         	showClassPath("1",ClassLoader.getSystemClassLoader());
-        	 
+        	
 			ClassLoader previous = Thread.currentThread().getContextClassLoader();
 			
 			showClassPath("2",previous);
