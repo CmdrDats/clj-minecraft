@@ -19,89 +19,20 @@ import java.util.logging.*;
  */
 public class ClojurePlugin extends BasePlugin {
 	
-	private final static String selfPluginName="cljminecraft";
+	private final static String selfPluginName="cljminecraft";//TODO: ClojurePlugin.class.getPackage()
 	private final static String selfCoreScript="cljminecraft.core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	
-	static {
-		ClassLoader previous = Thread.currentThread().getContextClassLoader();
-		showClassPath("1", previous);
-		ClassLoader classLoader = ClojurePlugin.class.getClassLoader();
-		showClassPath("2", classLoader);
-		Thread.currentThread().setContextClassLoader(classLoader);
-		try {
-			//this happens only once when ClojurePlugin.class gets loaded
-			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
-			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
-		}finally{
-//			Thread.currentThread().setContextClassLoader(previous);hmm not restoring this works :O
-			//FIXME: we're losing the bukkit classpath ?
-/*
-10:48:14 [INFO] ==1== For classloader sun.misc.Launcher$AppClassLoader@4aad3ba4----------
-10:48:14 [INFO] { file:/S:/cb/craftbukkit-1.4.5-R0.3-20121201.071839-14.jar }
-10:48:14 [INFO] ==1== ----END---sun.misc.Launcher$AppClassLoader@4aad3ba4 ----------
-10:48:14 [INFO] ==2== For classloader org.bukkit.plugin.java.PluginClassLoader@31f39c59 ----------
-10:48:14 [INFO] { file:/S:/cb/plugins/clj-minecraft-1.0.1-SNAPSHOT-standalone.jar }
-10:48:14 [INFO] ==2== ----END---org.bukkit.plugin.java.PluginClassLoader@31f39c59 ----------
- */
-		}
-	}
-	
-	@Override
-	public void onLoad() {
-		//XXX: executes once for each plugin
-//		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!1onLoad!!!!!!!!!!!!!!!!!!!");
-	}
-	
-	private static void showClassPath(String prefix, ClassLoader cl){
-		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
-		System.out.println(getClassPath(cl));
-//        URL[] urls = ((URLClassLoader)cl).getURLs();
-// 
-//        for(URL url: urls){
-//        	System.out.println(url.getPath());//getFile());
-//        	try {
-//				System.out.println(url.toURI());
-//			} catch ( URISyntaxException e ) {
-//				e.printStackTrace();
-//			}
-//        }
-        System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
-	}
 	
 	
-	private final static String getClassPath() {
-		return getClassPath(Thread.currentThread().getContextClassLoader());
-	}
-	
-	private final static String getClassPath(ClassLoader cl) {
-		URL[] urls = ((URLClassLoader)cl).getURLs();
-		String cp ="{";
-		
-		int max = urls.length-1;
-		if (max>=0){
-			cp+=" ";
-		}
-		for ( int i = 0; i <= max; i++ ) {
-			URL url = urls[i];
-        	try {
-				cp+= url.toURI().toString();
-				if(i != max) {
-					cp+=", ";
-				}else {
-					cp+=" ";
-				}
-			} catch ( URISyntaxException use ) {
-				use.printStackTrace();
-				throw new RuntimeException(use);
-			}
-        }
-        cp+="}";
-        return cp;
-	}
+//	@Override
+//	public void onLoad() {
+//		//XXX: executes once for each plugin
+////		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!1onLoad!!!!!!!!!!!!!!!!!!!");
+//	}
 	
 	
 	public void loadClojureResourceScript( String name ) throws IOException {
@@ -121,9 +52,11 @@ public class ClojurePlugin extends BasePlugin {
 		int slash = name.lastIndexOf( '/' );
 		String file = slash >= 0 ? name.substring( slash + 1 ) : name;//"core.clj"
 		InputStream is = classLoader.getResourceAsStream(name);
+		String cljMsg = "Clojure resource `"+name
+				+"` on classpath `" + getClassPath(classLoader)
+				+"` using class loader `"+classLoader+"`";
 		if ( is == null ) {
-			throw new FileNotFoundException( "Can't find Clojure resource `"+name+"` on classpath `" + getClassPath(classLoader)
-				+"` using class loader `"+classLoader+"`");
+			throw new FileNotFoundException( "Can't find "+cljMsg);
 		}
 		//else
 		
@@ -139,43 +72,25 @@ public class ClojurePlugin extends BasePlugin {
 		} finally {
 			is.close();//FIXME: also this
 		}
-		info( "Loaded Clojure resource `"+name+"` on classpath `" + getClassPath(classLoader)
-				+"` using class loader `"+classLoader+"`");
+		info( "Loaded "+cljMsg);
 	}
 	
-	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
+	
+	
+	
+//(nolonger applies): this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
 	//due to them using the same classloader (as CmdrDats said)
     private boolean loadClojureFile(String cljFile) {//no synchronized needed
         try {
-			Class<?> cls =this.getClass(); 
-			URL urls [] = {this.getFile().toURI().toURL()};
-			URLClassLoader cl = new URLClassLoader( urls, cls.getClassLoader() );
 			
-//			ClassLoader previous = Thread.currentThread().getContextClassLoader();
-//			Thread.currentThread().setContextClassLoader(new clojure.lang.DynamicClassLoader(previous));
+			System.out.println( "About to load clojure file: " + cljFile );
 			
-			try {
-				System.out.println( "loading clojure file: " + cljFile );
-				
-//				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER, clojure.lang.RT.F ) );
+			loadClojureResourceScript( cljFile, getOurClassLoader() );
 
-				//the problem with this is that RT is trying to load "clojure/core"
-//				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER, clojure.lang.RT.F ) );
-				
-				loadClojureResourceScript( cljFile, cl );
-			}finally {
-//				Thread.currentThread().setContextClassLoader(previous);
-				try {
-//					clojure.lang.Var.popThreadBindings();
-				} finally {
-//					Thread.currentThread().setContextClassLoader( previous );
-				}
-			}
-			
 			return true;
 		} catch ( Exception e ) {
-			System.out.println( "Something broke setting up Clojure" );
+			System.err.println( "Something broke setting up Clojure" );
 			e.printStackTrace();
 			return false;
 		}
