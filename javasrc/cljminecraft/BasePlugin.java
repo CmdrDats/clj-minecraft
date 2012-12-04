@@ -41,7 +41,7 @@ public abstract class BasePlugin extends JavaPlugin{
 			System.out.flush();
 			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
 		}finally{
-//			Thread.currentThread().setContextClassLoader(previous);hmm not restoring this works :O
+//			Thread.currentThread().setContextClassLoader(previous);//hmm not restoring this works :O
 			//XXX: we're losing the bukkit classpath ? is that even needed? or is part of a parent classpath anyway?
 /*
 10:48:14 [INFO] ==1== For classloader sun.misc.Launcher$AppClassLoader@4aad3ba4----------
@@ -51,6 +51,72 @@ public abstract class BasePlugin extends JavaPlugin{
 10:48:14 [INFO] { file:/S:/cb/plugins/clj-minecraft-1.0.1-SNAPSHOT-standalone.jar }
 10:48:14 [INFO] ==2== ----END---org.bukkit.plugin.java.PluginClassLoader@31f39c59 ----------
  */
+
+			//so this is the error when we restore the class loader:
+/*
+11:38:32 [INFO] About to load clojure file: cljminecraft/core.clj
+11:38:32 [SEVERE] Something broke setting up Clojure
+11:38:32 [SEVERE] java.lang.NoClassDefFoundError: clojure/lang/AFunction, compiling:(cljminecraft/core.clj:1)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.analyzeSeq(Compiler.java:6462)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.analyze(Compiler.java:6262)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.eval(Compiler.java:6508)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.eval(Compiler.java:6500)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.load(Compiler.java:6952)
+11:38:32 [SEVERE]       at cljminecraft.ClojurePlugin.loadClojureResourceScript(ClojurePlugin.java:66)
+11:38:32 [SEVERE]       at cljminecraft.ClojurePlugin.loadClojureFile(ClojurePlugin.java:89)
+11:38:32 [SEVERE]       at cljminecraft.ClojurePlugin.loadClojureNameSpace(ClojurePlugin.java:102)
+11:38:32 [SEVERE]       at cljminecraft.ClojurePlugin.start(ClojurePlugin.java:117)
+11:38:32 [SEVERE]       at cljminecraft.BasePlugin.onEnable(BasePlugin.java:180)
+11:38:32 [SEVERE]       at org.bukkit.plugin.java.JavaPlugin.setEnabled(JavaPlugin.java:217)
+11:38:32 [SEVERE]       at org.bukkit.plugin.java.JavaPluginLoader.enablePlugin(JavaPluginLoader.java:374)
+11:38:32 [SEVERE]       at org.bukkit.plugin.SimplePluginManager.enablePlugin(SimplePluginManager.java:381)
+11:38:32 [SEVERE]       at org.bukkit.craftbukkit.CraftServer.loadPlugin(CraftServer.java:270)
+11:38:32 [SEVERE]       at org.bukkit.craftbukkit.CraftServer.enablePlugins(CraftServer.java:252)
+11:38:32 [SEVERE]       at net.minecraft.server.MinecraftServer.j(MinecraftServer.java:320)
+11:38:32 [SEVERE]       at net.minecraft.server.MinecraftServer.e(MinecraftServer.java:299)
+11:38:32 [SEVERE]       at net.minecraft.server.MinecraftServer.a(MinecraftServer.java:258)
+11:38:32 [SEVERE]       at net.minecraft.server.DedicatedServer.init(DedicatedServer.java:147)
+11:38:32 [SEVERE]       at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:398)
+11:38:32 [SEVERE]       at net.minecraft.server.ThreadServerApplication.run(SourceFile:856)
+11:38:32 [SEVERE] Caused by: java.lang.NoClassDefFoundError: clojure/lang/AFunction
+11:38:32 [SEVERE]       at java.lang.ClassLoader.defineClass1(Native Method)
+11:38:32 [SEVERE]       at java.lang.ClassLoader.defineClassCond(Unknown Source)
+11:38:32 [SEVERE]       at java.lang.ClassLoader.defineClass(Unknown Source)
+11:38:32 [SEVERE]       at java.lang.ClassLoader.defineClass(Unknown Source)
+11:38:32 [SEVERE]       at clojure.lang.DynamicClassLoader.defineClass(DynamicClassLoader.java:46)
+11:38:32 [SEVERE]       at clojure.lang.Compiler$ObjExpr.getCompiledClass(Compiler.java:4579)
+11:38:32 [SEVERE]       at clojure.lang.Compiler$FnExpr.parse(Compiler.java:3742)
+11:38:32 [SEVERE]       at clojure.lang.Compiler.analyzeSeq(Compiler.java:6453)
+11:38:32 [SEVERE]       ... 20 more
+11:38:32 [SEVERE] Caused by: java.lang.ClassNotFoundException: clojure.lang.AFunction
+11:38:32 [SEVERE]       at java.net.URLClassLoader$1.run(Unknown Source)
+11:38:32 [SEVERE]       at java.security.AccessController.doPrivileged(Native Method)
+11:38:32 [SEVERE]       at java.net.URLClassLoader.findClass(Unknown Source)
+11:38:32 [SEVERE]       at clojure.lang.DynamicClassLoader.findClass(DynamicClassLoader.java:61)
+11:38:32 [SEVERE]       at java.lang.ClassLoader.loadClass(Unknown Source)
+11:38:32 [SEVERE]       at java.lang.ClassLoader.loadClass(Unknown Source)
+11:38:32 [SEVERE]       ... 28 more
+11:38:32 [SEVERE] Error occurred while enabling cljminecraft v1.0.1 (Is it up to date?)
+java.lang.IllegalStateException: Attempting to call unbound fn: #'cljminecraft.core/on-enable
+        at clojure.lang.Var$Unbound.throwArity(Var.java:43)
+        at clojure.lang.AFn.invoke(AFn.java:39)
+        at clojure.lang.Var.invoke(Var.java:415)
+        at cljminecraft.ClojurePlugin.invokeClojureFunction(ClojurePlugin.java:106)
+        at cljminecraft.ClojurePlugin.start(ClojurePlugin.java:125)
+        at cljminecraft.BasePlugin.onEnable(BasePlugin.java:180)
+        at org.bukkit.plugin.java.JavaPlugin.setEnabled(JavaPlugin.java:217)
+        at org.bukkit.plugin.java.JavaPluginLoader.enablePlugin(JavaPluginLoader.java:374)
+        at org.bukkit.plugin.SimplePluginManager.enablePlugin(SimplePluginManager.java:381)
+        at org.bukkit.craftbukkit.CraftServer.loadPlugin(CraftServer.java:270)
+        at org.bukkit.craftbukkit.CraftServer.enablePlugins(CraftServer.java:252)
+        at net.minecraft.server.MinecraftServer.j(MinecraftServer.java:320)
+        at net.minecraft.server.MinecraftServer.e(MinecraftServer.java:299)
+        at net.minecraft.server.MinecraftServer.a(MinecraftServer.java:258)
+        at net.minecraft.server.DedicatedServer.init(DedicatedServer.java:147)
+        at net.minecraft.server.MinecraftServer.run(MinecraftServer.java:398)
+        at net.minecraft.server.ThreadServerApplication.run(SourceFile:856)
+11:38:32 [INFO] [memorystone] Enabling memorystone v2.0.0
+*/
 		}
 	}
 	
