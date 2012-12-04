@@ -87,6 +87,7 @@ public class ClojurePlugin extends BasePlugin {
 			System.out.println( "About to load clojure file: " + cljFile );
 			
 			loadClojureResourceScript( cljFile, getOurClassLoader() );
+			//TODO: check if we can bind clojure.lang.Compiler.LOADER to the classloader instead of setting current thread' clsloader
 			//XXX: setting this so that any future load scripts actually use this classloader :/
 			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
 

@@ -27,6 +27,7 @@
     (if (not resolved)
       (. plugin info "plugin didn't have a start method")
       (do 
+        (. plugin info (format "second Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
         (. plugin info "calling child start")
         (resolved plugin))
       )
@@ -40,6 +41,7 @@
   (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/stop")))]
     (resolved plugin))
   (log/info "Clojure stopped - %s" plugin)
+  (. plugin info (format "third Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
   )
 
 
