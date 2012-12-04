@@ -4,10 +4,14 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import clojure.lang.*;
+import clojure.lang.Compiler;
+
 import java.io.*;
 import java.lang.ClassLoader;
 import java.net.*;
 import java.nio.charset.*;
+import java.security.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -86,11 +90,45 @@ public class ClojurePlugin extends BasePlugin {
         try {
 			
 			System.out.println( "About to load clojure file: " + cljFile );
+			//TODO: check for using Compiler.class.getClassLoader()
+			showClassPath("0", Compiler.class.getClassLoader());
+			showClassPath( "1", Thread.currentThread().getContextClassLoader() );
+
+//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, getOurClassLoader()));
+			DynamicClassLoader newCL=
+//			try {
+//				newCL=
+				(DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
+					
+					@Override
+					public Object run() {
+						return new DynamicClassLoader(
+							Thread.currentThread().getContextClassLoader()
+//							getOurClassLoader() 
+							);
+					}
+				} );
+//			}finally{
+//				clojure.lang.Var.popThreadBindings();
+//			}
+			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
+
+//			loadClojureResourceScript( cljFile, getOurClassLoader() );
 			
-			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
-			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
+			showClassPath( "2", Thread.currentThread().getContextClassLoader() );
+			newCL.addURL( this.getFile().toURI().toURL() );
+
+			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
+			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
+			if (getDescription().getName().equals("moomoo")) {
+				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
+			}
+			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
+//			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
+//			showClassPath( "3", Thread.currentThread().getContextClassLoader() );
 			
-			loadClojureResourceScript( cljFile, getOurClassLoader() );
+			clojure.lang.RT.loadResourceScript( cljFile );
+//			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
 			//TODO: check if we can bind clojure.lang.Compiler.LOADER to the classloader instead of setting current thread' clsloader
 			//XXX: setting this so that any future load scripts actually use this classloader :/
 			
