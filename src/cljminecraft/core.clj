@@ -45,4 +45,4 @@
   )
 
 
-; could add a start and stop methods if wanted, which will be run for cljminecraft only
+; could add a stop method if wanted, which will be run for cljminecraft only

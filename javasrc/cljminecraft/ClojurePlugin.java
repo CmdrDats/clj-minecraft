@@ -57,8 +57,9 @@ public class ClojurePlugin extends BasePlugin {
 				+"` using class loader `"+classLoader+"`";
 		if ( is == null ) {
 			throw new FileNotFoundException( "Can't find "+cljMsg);
+		} else {
+			info("About to load "+cljMsg);
 		}
-		//else
 		
 		try {
 			InputStreamReader isr = new InputStreamReader( is, UTF8 );
@@ -90,7 +91,8 @@ public class ClojurePlugin extends BasePlugin {
 			//TODO: check if we can bind clojure.lang.Compiler.LOADER to the classloader instead of setting current thread' clsloader
 			//XXX: setting this so that any future load scripts actually use this classloader :/
 			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
-
+			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
+//TODO: check if config.yml options are still the same after some other child plugin loaded, but before the shutdown/stop happens which rolls them in reverse order so you can't tell if it really works
 			return true;
 		} catch ( Exception e ) {
 			System.err.println( "Something broke setting up Clojure" );

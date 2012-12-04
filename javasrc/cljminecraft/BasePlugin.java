@@ -9,6 +9,8 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
+import clojure.lang.Compiler;
+
 
 public abstract class BasePlugin extends JavaPlugin{
 	private final Logger logger=Bukkit.getLogger();
@@ -183,9 +185,19 @@ java.lang.IllegalStateException: Attempting to call unbound fn: #'cljminecraft.c
 			};
 			
 			thisPluginSClassLoader = new URLClassLoader( urls, cls.getClassLoader() );
+//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, thisPluginSClassLoader ) );
+			//XXX: why isn't the above equivalent to the below? hmm...
+//			Thread.currentThread().setContextClassLoader( thisPluginSClassLoader );//oh wait this isn't working either, at this location
 		}
 		
 		assert null != thisPluginSClassLoader;
+		
+//		assert clojure.lang.RT.baseLoader() == thisPluginSClassLoader;
+				
+//		assert (clojure.lang.Compiler.LOADER.isBound());
+//		assert clojure.lang.RT.baseLoader() == clojure.lang.Compiler.LOADER.deref();
+//		assert thisPluginSClassLoader == clojure.lang.Compiler.LOADER.deref();
+//		return (ClassLoader)clojure.lang.Compiler.LOADER.deref();
 		return thisPluginSClassLoader;
 	}
 	
