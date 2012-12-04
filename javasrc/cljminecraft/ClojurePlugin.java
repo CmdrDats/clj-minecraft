@@ -23,10 +23,10 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfDisableFunction="on-disable";
 	
 	
-	//XXX: this works only for cljminecraft plugin, or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
+	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml will be shadowed by cljminecraft
     private boolean loadClojureFile(String cljFile) {
-    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
+//    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
         	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
 			ClassLoader previous = Thread.currentThread().getContextClassLoader();
@@ -67,7 +67,7 @@ public class ClojurePlugin extends BasePlugin {
 			success = loadClojureNameSpace(selfCoreScript);
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			success=true;
+			success = loadClojureNameSpace(pluginName+".core");
 		}
 
 		invokeClojureFunction(selfCoreScript, selfEnableFunction );
