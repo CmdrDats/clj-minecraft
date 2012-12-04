@@ -2,6 +2,7 @@ package cljminecraft;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 import java.util.logging.*;
 
 import org.bukkit.*;
@@ -9,6 +10,7 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
+import clojure.lang.*;
 import clojure.lang.Compiler;
 
 
@@ -42,8 +44,15 @@ public abstract class BasePlugin extends JavaPlugin{
 			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
 			System.out.flush();
 			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
+			DynamicClassLoader newCL = (DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
+				@Override
+				public Object run() {
+					return new DynamicClassLoader( this.getClass().getClassLoader() );
+				}
+			} );
+			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
 		}finally{
-//			Thread.currentThread().setContextClassLoader(previous);//hmm not restoring this works :O
+			Thread.currentThread().setContextClassLoader(previous);//hmm not restoring this works :O
 			//XXX: we're losing the bukkit classpath ? is that even needed? or is part of a parent classpath anyway?
 /*
 10:48:14 [INFO] ==1== For classloader sun.misc.Launcher$AppClassLoader@4aad3ba4----------

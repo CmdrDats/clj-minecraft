@@ -32,11 +32,20 @@ public class ClojurePlugin extends BasePlugin {
 	
 	
 	
-//	@Override
-//	public void onLoad() {
-//		//XXX: executes once for each plugin
-////		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!1onLoad!!!!!!!!!!!!!!!!!!!");
-//	}
+	@Override
+	public void onLoad() {
+		URL jarURL;
+		// XXX: executes once for each plugin
+		try {
+			jarURL = this.getFile().toURI().toURL();
+		} catch ( MalformedURLException e ) {
+			throw new RuntimeException( "should never happen", e );
+		}
+		
+		System.out.println( "loading jar: " + jarURL );
+		assert clojure.lang.Compiler.LOADER.isBound();
+		( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
+	}
 	
 	
 	public void loadClojureResourceScript( String name ) throws IOException {
@@ -92,39 +101,40 @@ public class ClojurePlugin extends BasePlugin {
 			System.out.println( "About to load clojure file: " + cljFile );
 			//TODO: check for using Compiler.class.getClassLoader()
 			showClassPath("0", Compiler.class.getClassLoader());
-			showClassPath( "1", Thread.currentThread().getContextClassLoader() );
+//			showClassPath( "1", Thread.currentThread().getContextClassLoader() );
 
 //			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, getOurClassLoader()));
-			DynamicClassLoader newCL=
-//			try {
-//				newCL=
-				(DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
-					
-					@Override
-					public Object run() {
-						return new DynamicClassLoader(
-							Thread.currentThread().getContextClassLoader()
-//							getOurClassLoader() 
-							);
-					}
-				} );
+//			DynamicClassLoader newCL=
+////			try {
+////				newCL=
+//				(DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
+//					
+//					@Override
+//					public Object run() {
+//						return new DynamicClassLoader(
+//							this.getClass().getClassLoader()
+////							getOurClassLoader() 
+//							);
+//					}
+//				} );
 //			}finally{
 //				clojure.lang.Var.popThreadBindings();
 //			}
-			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
+//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
 
 //			loadClojureResourceScript( cljFile, getOurClassLoader() );
 			
-			showClassPath( "2", Thread.currentThread().getContextClassLoader() );
-			newCL.addURL( this.getFile().toURI().toURL() );
+//			showClassPath( "2", Thread.currentThread().getContextClassLoader() );
+			
 
-			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
-			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
-			if (getDescription().getName().equals("moomoo")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
-//				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
-				newCL.addURL( new URL("file:/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
-			}
+//			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
+//			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
+//			if (getDescription().getName().equals("moomoo")) {
+////				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
+//				newCL.addURL( new URL("file:/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
+//			}
 			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
+			showClassPath( "6", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
 //			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
 //			showClassPath( "3", Thread.currentThread().getContextClassLoader() );
 			
