@@ -120,9 +120,10 @@ public class ClojurePlugin extends BasePlugin {
 
 			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
 			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
-//			if (getDescription().getName().equals("memorystone")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
+			if (getDescription().getName().equals("moomoo")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
 //				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
-//			}
+				newCL.addURL( new URL("file:/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
+			}
 			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
 //			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
 //			showClassPath( "3", Thread.currentThread().getContextClassLoader() );
