@@ -71,6 +71,7 @@ public abstract class BasePlugin extends JavaPlugin{
 //			clojure.lang.RT.WARN_ON_REFLECTION);
 			//no: maybe specify namespace to that *var* - can't intern namespace qualified symbol(I predict)
 			//XXX: turn on reflection warnings for all plugins (maybe add/override this in each config.yml
+			//XXX: does the above make sense? not sure how
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
 				Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
