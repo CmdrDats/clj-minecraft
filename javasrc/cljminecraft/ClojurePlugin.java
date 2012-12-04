@@ -2,7 +2,7 @@ package cljminecraft;
 import java.io.*;
 
 /**
- * an instance of this class is create for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
+ * an instance of this class is created for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
  * it will have to have in its plugin.yml the following:<br>
  * "main: cljminecraft.ClojurePlugin"
  *
