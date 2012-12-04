@@ -15,46 +15,44 @@ import org.bukkit.plugin.java.*;
 
 
 public abstract class BasePlugin extends JavaPlugin{
+	
+	public final static Charset UTF8 = Charset.forName("UTF-8");
+	
 	private final Logger logger=Bukkit.getLogger();
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	private ClassLoader thisPluginSClassLoader=null;//each (main/child)plugin can have (different)one
-	public final static Charset UTF8 = Charset.forName("UTF-8");
+	
 	
 	static {
-		boolean a=false;
-		assert (true == (a=true));
+		boolean asserts=false;
+		assert (true == (asserts=true));
 		PrintStream boo;
-		if ( a ) {
+		if ( asserts ) {
 			boo = System.err;//[SEVERE] when enabled (bad for production use)
 		} else {
 			boo = System.out;//[INFO] when not enabled (good for production use)
 		}
 		
-		boo.println("assertions are "+(!a?"NOT ":"")+"enabled"+(!a?" (to enable pass jvm option -ea when starting bukkit)":""));
+		boo.println("assertions are "+(!asserts?"NOT ":"")+"enabled"+(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
+		//one time in bukkit lifetime(right?) we set *loader* to the classloader which applies to any future clojure scripts loads
 		ClassLoader previous = Thread.currentThread().getContextClassLoader();
-//		showClassPath("1", previous);
-		final ClassLoader classLoader = ClojurePlugin.class.getClassLoader();
-//		showClassPath("2", classLoader);
-		Thread.currentThread().setContextClassLoader(classLoader);
+		final ClassLoader parentClassLoader = ClojurePlugin.class.getClassLoader();
+		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
 			//this happens only once when ClojurePlugin.class gets loaded
 			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
 			System.out.flush();
-//			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
-			//nolonger needing dymmy line above which causes RT.class to run its static initializer block which does load script clojure/core
 			
 			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
 				@Override
 				public Object run() {
-//					showClassPath( "inRun1", this.getClass().getClassLoader() );
-//					showClassPath( "inRun2", Thread.currentThread().getContextClassLoader() );
-					assert classLoader == ClojurePlugin.class.getClassLoader();
+					assert parentClassLoader == ClojurePlugin.class.getClassLoader();
 					assert this.getClass().getClassLoader() == ClojurePlugin.class.getClassLoader();//even though "this" is different
-					return new clojure.lang.DynamicClassLoader( classLoader );
+					return new clojure.lang.DynamicClassLoader( parentClassLoader );
 				}
 			} );
 			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
@@ -80,8 +78,9 @@ public abstract class BasePlugin extends JavaPlugin{
 	}
 	
 	public BasePlugin() {
+		super();
 		//constructor
-		info("CONSTRUCTOR");
+		info("CONSTRUCTOR");//for "+this.getFile().getAbsoluteFile()); these aren't yet set
 		//XXX: an instance is created of this class for every child plugin (including the main one) 
 		//TODO: maybe add a test to make sure this didn't change in the future
 	}

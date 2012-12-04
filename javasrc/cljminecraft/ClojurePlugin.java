@@ -14,66 +14,12 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
 	
-	
-	
-	@Deprecated
-	private final void loadClojureResourceScript( String name ) throws IOException {
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-		loadClojureResourceScript(name, classLoader);
-	}
-	/**
-	 * deprecated: use clojure.lang.RT.loadResourceScript( cljFile ); instead <br>
-	 * @param name ie. "memorystone/core.clj"
-	 * @param classLoader ie. Thread.currentThread().getContextClassLoader()
-	 * @throws IOException 
-	 */
-	@Deprecated
-	private final void loadClojureResourceScript( String name, ClassLoader classLoader ) throws IOException {
-		assert null != name;
-		assert name.length() > 0;
-		assert null != classLoader;
-		
-		int slash = name.lastIndexOf( '/' );
-		String file = slash >= 0 ? name.substring( slash + 1 ) : name;//"core.clj"
-		InputStream is = classLoader.getResourceAsStream(name);
-		String cljMsg = "Clojure resource `"+name
-				+"` on classpath `" + getClassPath(classLoader)
-				+"` using class loader `"+classLoader+"`";
-		if ( is == null ) {
-			throw new FileNotFoundException( "Can't find "+cljMsg);
-		} else {
-			info("About to load "+cljMsg);
-		}
-		
-		try {
-			InputStreamReader isr = new InputStreamReader( is, UTF8 );
-			try {
-				clojure.lang.Compiler.load( isr, name, file );//"memorystone/core.clj" and "core.clj"
-				//the above call also loads "clojure/core" (if first time RT class initing)
-				//which means it's using current thread's classloader; but only if it wasn't already inited ie. RT.class loaded
-			} finally {
-				isr.close();//FIXME: if this throws it should not overwrite previously thrown exception
-			}
-		} finally {
-			is.close();//FIXME: also this
-		}
-		info( "Loaded "+cljMsg);
-	}
-	
-	
-	
-	
-//(nolonger applies): this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
-	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
-	//due to them using the same classloader (as CmdrDats said)
-	//to avoid shadowing of resources like that, we set *loader* binding so it affects only clojure and avoid class-loader-of entirely
     private boolean loadClojureFile(String cljFile) {//no synchronized needed
         try {
 			
 			System.out.println( "About to load clojure file: " + cljFile );
 			assert clojure.lang.Compiler.LOADER.isBound();
 			clojure.lang.RT.loadResourceScript( cljFile );
-			
 //TODO: check if default config.yml options are still the same after some other child plugin loaded, but before the shutdown/stop happens which rolls them in reverse order so you can't tell if it really works
 			return true;
 		} catch ( Exception e ) {
@@ -104,8 +50,6 @@ public class ClojurePlugin extends BasePlugin {
 			success = loadClojureNameSpace(selfCoreScript);
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			//(nolonger applies): the child plugin must have in plugin.yml: class-loader-of: cljminecraft
-			//or the following will fail:
 			success = loadClojureNameSpace(pluginName+".core");
 		}
 
