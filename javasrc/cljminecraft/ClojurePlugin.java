@@ -8,9 +8,12 @@ import java.io.*;
  *
  */
 public class ClojurePlugin extends BasePlugin {
+//	static {
+//		System.err.println("!!!!!!!!!!!!!"+ClojurePlugin.class.getPackage().getName()+"!!!!!!!!!!!!!!!");
+//	}
 	
-	private final static String selfPluginName="cljminecraft";//TODO: ClojurePlugin.class.getPackage()
-	private final static String selfCoreScript="cljminecraft.core";
+	private final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
+	private final static String selfCoreScript=selfPluginName+".core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
 	

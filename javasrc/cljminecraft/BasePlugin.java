@@ -40,6 +40,10 @@ public abstract class BasePlugin extends JavaPlugin{
 		
 		boo.println("assertions are "+(!asserts?"NOT ":"")+"enabled"+(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
+		
+		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
+		//bukkit will then make sure cljminecraft is loaded before them
+		
 		//one time in bukkit lifetime(right?) we set *loader* to the classloader which applies to any future clojure scripts loads
 		ClassLoader previous = Thread.currentThread().getContextClassLoader();
 		final ClassLoader parentClassLoader = ClojurePlugin.class.getClassLoader();
