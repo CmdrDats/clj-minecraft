@@ -27,14 +27,25 @@ public class ClojurePlugin extends BasePlugin {
 	
     private boolean loadClojureFile(String cljFile) {
         try {
-            ClassLoader previous = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+
+            System.out.println("ClassLoader of thread: "+Thread.currentThread().getContextClassLoader());
+            System.out.println("ClassLoader of this: "+this.getClass().getClassLoader());
+
+            ClassLoader 
+//            previous=null;
+//    		if ( selfPluginName.equals( getDescription().getName() ) ) {
+    			previous = Thread.currentThread().getContextClassLoader();
+    			Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
+//    		}
 			try {
 				System.out.println( "loading clojure file: " + cljFile );
+//				clojure.lang.RT.var( init )
 				clojure.lang.RT.loadResourceScript( cljFile );
 				
 			} finally {
-				Thread.currentThread().setContextClassLoader( previous );
+//				if ( selfPluginName.equals( getDescription().getName() ) ) {
+					Thread.currentThread().setContextClassLoader( previous );
+//				}
 			}
             return true;
         } catch (Exception e) {
@@ -76,7 +87,8 @@ public class ClojurePlugin extends BasePlugin {
 //			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			success = loadClojureNameSpace(pluginName + "."+childPlugin_CoreScript);
+//			success = loadClojureNameSpace(pluginName + "."+childPlugin_CoreScript);
+			success=true;
 		}
 
 		invokeClojureFunction(selfCoreScript, selfEnableFunction );
@@ -84,9 +96,9 @@ public class ClojurePlugin extends BasePlugin {
 		return success;
     }
 
-    public void onDisableClojureMainOrChildPlugin(String ns, String disableFunction) {
-    	invokeClojureFunction(ns, disableFunction);
-    }
+//    public void onDisableClojureMainOrChildPlugin(String ns, String disableFunction) {
+//    	invokeClojureFunction(ns, disableFunction);
+//    }
 
     
     @Override
@@ -94,11 +106,12 @@ public class ClojurePlugin extends BasePlugin {
 		String pluginName = getDescription().getName();
 		if ( selfPluginName.equals( pluginName ) ) {
 			info( "Disabling main " + pluginName + " clojure Plugin" );
-			onDisableClojureMainOrChildPlugin( selfCoreScript, selfDisableFunction );
 		} else {
 			info( "Disabling child " + pluginName + " clojure Plugin" );
-			onDisableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_DisableFunction );
+//			onDisableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_DisableFunction );
 		}
+		invokeClojureFunction( selfCoreScript, selfDisableFunction );
+
     }
     
 

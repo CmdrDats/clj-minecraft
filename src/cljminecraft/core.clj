@@ -15,12 +15,14 @@
   (cfg/config-defaults plugin)
   (if (cfg/get-boolean plugin "repl.enabled")
     (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))
-    (log/info "Repl options: " (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
+    (log/info "Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled")))
   (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
     (resolved plugin))
   (log/info "Clojure started - %s" plugin))
 
 (defn on-disable [plugin]
+  (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/stop")))]
+    (resolved plugin))
   (log/info "Clojure stopped - %s" plugin))
 
 
