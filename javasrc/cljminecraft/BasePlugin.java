@@ -72,7 +72,7 @@ public abstract class BasePlugin extends JavaPlugin{
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
 				Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
-				, clojure.lang.RT.T, true);
+				, clojure.lang.RT.F, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
