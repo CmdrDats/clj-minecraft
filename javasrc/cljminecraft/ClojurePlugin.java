@@ -26,14 +26,14 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfDisableFunction="on-disable";
 	
 	
-	private void showClassPath(ClassLoader cl){
-		System.out.println("For classloader "+cl+" ----------");
+	private void showClassPath(String prefix, ClassLoader cl){
+		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
         URL[] urls = ((URLClassLoader)cl).getURLs();
  
         for(URL url: urls){
         	System.out.println(url.getFile());
         }
-        System.out.println("----END---"+cl+" ----------");
+        System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
 	}
 	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
@@ -42,19 +42,19 @@ public class ClojurePlugin extends BasePlugin {
 //    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
         	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
-        	showClassPath(ClassLoader.getSystemClassLoader());
+        	showClassPath("1",ClassLoader.getSystemClassLoader());
         	 
 			ClassLoader previous = Thread.currentThread().getContextClassLoader();
 			
-			showClassPath(previous);
-			showClassPath(this.getClass().getClassLoader());
+			showClassPath("2",previous);
+			showClassPath("3", this.getClass().getClassLoader());
 			
 			Thread.currentThread().setContextClassLoader(
 				//new clojure.lang.DynamicClassLoader(previous)); 
 				this.getClass().getClassLoader() );
 			try {
-				showClassPath(ClassLoader.getSystemClassLoader());
-				showClassPath(Thread.currentThread().getContextClassLoader());
+				showClassPath("4", ClassLoader.getSystemClassLoader());
+				showClassPath("5", Thread.currentThread().getContextClassLoader());
 		        
 	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
 	        	System.out.println( "loading clojure file: " + cljFile );
