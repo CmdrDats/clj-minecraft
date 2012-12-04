@@ -49,18 +49,35 @@ public class ClojurePlugin extends BasePlugin {
 			showClassPath("2",previous);
 			showClassPath("3", this.getClass().getClassLoader());
 			
+
+			System.out.println(this.getClass());
+			Class<?> cls = Class.forName("cljminecraft.ClojurePlugin");
+			System.out.println(cls);
+
+			URLClassLoader cl = new URLClassLoader(((URLClassLoader)
+//					this.getClass().getClassLoader()
+					cls.getClassLoader()
+					).getURLs(), cls.getClassLoader());
+
+			
 			Thread.currentThread().setContextClassLoader(
-				//new clojure.lang.DynamicClassLoader(previous)); 
-				this.getClass().getClassLoader() );
+//				new clojure.lang.DynamicClassLoader(previous)); 
+//				new clojure.lang.DynamicClassLoader(this.getClass().getClassLoader()));
+				new clojure.lang.DynamicClassLoader(cl));
+//				cl);
+//				cls.getClassLoader() );
+//			Thread.currentThread().setContextClassLoader(cl);
+			
 			try {
 				showClassPath("4", ClassLoader.getSystemClassLoader());
 				showClassPath("5", Thread.currentThread().getContextClassLoader());
 		        
-	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
+//	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
+				
 	        	System.out.println( "loading clojure file: " + cljFile );
 				clojure.lang.RT.loadResourceScript( cljFile );
 			} finally {
-				Var.popThreadBindings();
+//				Var.popThreadBindings();
 				Thread.currentThread().setContextClassLoader( previous );
 			}
 //			System.out.println( "loading clojure file: " + cljFile );
