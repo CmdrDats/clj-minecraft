@@ -120,13 +120,14 @@ public class ClojurePlugin extends BasePlugin {
 
 			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
 			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
-			if (getDescription().getName().equals("memorystone")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
-				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
-			}
+//			if (getDescription().getName().equals("memorystone")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
+//				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
+//			}
 			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
 //			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
 //			showClassPath( "3", Thread.currentThread().getContextClassLoader() );
 			
+			assert clojure.lang.Compiler.LOADER.isBound();
 			clojure.lang.RT.loadResourceScript( cljFile );
 //			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
 			//TODO: check if we can bind clojure.lang.Compiler.LOADER to the classloader instead of setting current thread' clsloader
