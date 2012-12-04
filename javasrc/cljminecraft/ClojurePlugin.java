@@ -25,11 +25,16 @@ public class ClojurePlugin extends BasePlugin {
 //	private final static String childPlugin_DisableFunction="disable-plugin";
 //	private final static String childPlugin_CoreScript="core";
 	
+	
+	
+	//XXX: this works only for cljminecraft plugin, or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
+	//but if that's satisfied then config.yml will be shadowed by cljminecraft
     private boolean loadClojureFile(String cljFile) {
+    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
 
-            System.out.println("ClassLoader of thread: "+Thread.currentThread().getContextClassLoader());
-            System.out.println("ClassLoader of this: "+this.getClass().getClassLoader());
+//            System.out.println("ClassLoader of thread: "+Thread.currentThread().getContextClassLoader());
+//            System.out.println("ClassLoader of this: "+this.getClass().getClassLoader());
 
             ClassLoader 
 //            previous=null;
