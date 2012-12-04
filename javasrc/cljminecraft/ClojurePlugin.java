@@ -25,6 +25,20 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfDisableFunction="on-disable";
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
+	
+	static {
+		ClassLoader previous = Thread.currentThread().getContextClassLoader();
+		ClassLoader classLoader = ClojurePlugin.class.getClassLoader();
+		Thread.currentThread().setContextClassLoader(classLoader);
+		try {
+			if (null != clojure.lang.RT.EMPTY_ARRAY) {//it's assumed that's never null, or at least not inited as null
+				System.out.println("First time clojure init");//this happens only once when ClojurePlugin.class gets loaded
+			}
+		}finally{
+//			Thread.currentThread().setContextClassLoader(previous);hmm not restoring this works :O
+		}
+	}
+	
 	private void showClassPath(String prefix, ClassLoader cl){
 		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
 		System.out.println(getClassPath(cl));
@@ -99,15 +113,9 @@ public class ClojurePlugin extends BasePlugin {
 		try {
 			InputStreamReader isr = new InputStreamReader( is, UTF8 );
 			try {
-				ClassLoader previous = Thread.currentThread().getContextClassLoader();
-				Thread.currentThread().setContextClassLoader(classLoader);
-				try {
-					clojure.lang.Compiler.load( isr, name, file );//"memorystone/core.clj" and "core.clj"
-					//the above call also loads "clojure/core" (if first time RT class initing)
-					//which means it's using current thread's classloader
-				}finally{
-					Thread.currentThread().setContextClassLoader(previous);
-				}
+				clojure.lang.Compiler.load( isr, name, file );//"memorystone/core.clj" and "core.clj"
+				//the above call also loads "clojure/core" (if first time RT class initing)
+				//which means it's using current thread's classloader; but only if it wasn't already inited ie. RT.class loaded
 			} finally {
 				isr.close();//FIXME: if this throws it should not overwrite previously thrown exception
 			}
@@ -132,6 +140,7 @@ public class ClojurePlugin extends BasePlugin {
 			
 			try {
 				System.out.println( "loading clojure file: " + cljFile );
+				
 //				clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.RT.USE_CONTEXT_CLASSLOADER, clojure.lang.RT.F ) );
 
 				//the problem with this is that RT is trying to load "clojure/core"
