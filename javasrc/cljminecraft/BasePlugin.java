@@ -38,6 +38,7 @@ public abstract class BasePlugin extends JavaPlugin{
 		try {
 			//this happens only once when ClojurePlugin.class gets loaded
 			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
+			System.out.flush();
 			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
 		}finally{
 //			Thread.currentThread().setContextClassLoader(previous);hmm not restoring this works :O
