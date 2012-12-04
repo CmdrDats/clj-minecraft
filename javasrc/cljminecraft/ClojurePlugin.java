@@ -1,19 +1,5 @@
 package cljminecraft;
-import org.bukkit.*;
-import org.bukkit.command.*;
-import org.bukkit.plugin.*;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import clojure.lang.*;
-import clojure.lang.Compiler;
-
 import java.io.*;
-import java.lang.ClassLoader;
-import java.net.*;
-import java.nio.charset.*;
-import java.security.*;
-import java.util.*;
-import java.util.logging.*;
 
 /**
  * an instance of this class is create for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
@@ -27,37 +13,22 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfCoreScript="cljminecraft.core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
-	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	
 	
-	
-	@Override
-	public void onLoad() {
-		URL jarURL;
-		// XXX: executes once for each plugin
-		try {
-			jarURL = this.getFile().toURI().toURL();
-		} catch ( MalformedURLException e ) {
-			throw new RuntimeException( "should never happen", e );
-		}
-		
-		System.out.println( "loading jar: " + jarURL );
-		assert clojure.lang.Compiler.LOADER.isBound();
-		( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
-	}
-	
-	
-	public void loadClojureResourceScript( String name ) throws IOException {
+	@Deprecated
+	private final void loadClojureResourceScript( String name ) throws IOException {
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		loadClojureResourceScript(name, classLoader);
 	}
 	/**
+	 * deprecated: use clojure.lang.RT.loadResourceScript( cljFile ); instead <br>
 	 * @param name ie. "memorystone/core.clj"
 	 * @param classLoader ie. Thread.currentThread().getContextClassLoader()
 	 * @throws IOException 
 	 */
-	public void loadClojureResourceScript( String name, ClassLoader classLoader ) throws IOException {
+	@Deprecated
+	private final void loadClojureResourceScript( String name, ClassLoader classLoader ) throws IOException {
 		assert null != name;
 		assert name.length() > 0;
 		assert null != classLoader;
@@ -95,56 +66,15 @@ public class ClojurePlugin extends BasePlugin {
 //(nolonger applies): this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
 	//due to them using the same classloader (as CmdrDats said)
+	//to avoid shadowing of resources like that, we set *loader* binding so it affects only clojure and avoid class-loader-of entirely
     private boolean loadClojureFile(String cljFile) {//no synchronized needed
         try {
 			
 			System.out.println( "About to load clojure file: " + cljFile );
-			//TODO: check for using Compiler.class.getClassLoader()
-			showClassPath("0", Compiler.class.getClassLoader());
-//			showClassPath( "1", Thread.currentThread().getContextClassLoader() );
-
-//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, getOurClassLoader()));
-//			DynamicClassLoader newCL=
-////			try {
-////				newCL=
-//				(DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
-//					
-//					@Override
-//					public Object run() {
-//						return new DynamicClassLoader(
-//							this.getClass().getClassLoader()
-////							getOurClassLoader() 
-//							);
-//					}
-//				} );
-//			}finally{
-//				clojure.lang.Var.popThreadBindings();
-//			}
-//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
-
-//			loadClojureResourceScript( cljFile, getOurClassLoader() );
-			
-//			showClassPath( "2", Thread.currentThread().getContextClassLoader() );
-			
-
-//			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
-//			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
-//			if (getDescription().getName().equals("moomoo")) {
-////				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
-//				newCL.addURL( new URL("file:/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
-//			}
-			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
-			showClassPath( "6", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
-//			assert clojure.lang.RT.baseLoader() == getOurClassLoader();
-//			showClassPath( "3", Thread.currentThread().getContextClassLoader() );
-			
 			assert clojure.lang.Compiler.LOADER.isBound();
 			clojure.lang.RT.loadResourceScript( cljFile );
-//			Thread.currentThread().setContextClassLoader( getOurClassLoader() );
-			//TODO: check if we can bind clojure.lang.Compiler.LOADER to the classloader instead of setting current thread' clsloader
-			//XXX: setting this so that any future load scripts actually use this classloader :/
 			
-//TODO: check if config.yml options are still the same after some other child plugin loaded, but before the shutdown/stop happens which rolls them in reverse order so you can't tell if it really works
+//TODO: check if default config.yml options are still the same after some other child plugin loaded, but before the shutdown/stop happens which rolls them in reverse order so you can't tell if it really works
 			return true;
 		} catch ( Exception e ) {
 			System.err.println( "Something broke setting up Clojure" );
@@ -174,7 +104,7 @@ public class ClojurePlugin extends BasePlugin {
 			success = loadClojureNameSpace(selfCoreScript);
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-			//the child plugin must have in plugin.yml: class-loader-of: cljminecraft
+			//(nolonger applies): the child plugin must have in plugin.yml: class-loader-of: cljminecraft
 			//or the following will fail:
 			success = loadClojureNameSpace(pluginName+".core");
 		}
