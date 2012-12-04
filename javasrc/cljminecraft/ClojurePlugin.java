@@ -31,9 +31,31 @@ public class ClojurePlugin extends BasePlugin {
         URL[] urls = ((URLClassLoader)cl).getURLs();
  
         for(URL url: urls){
-        	System.out.println(url.getFile());
+        	System.out.println(url.getPath());//getFile());
+        	try {
+				System.out.println(url.toURI());
+			} catch ( URISyntaxException e ) {
+				e.printStackTrace();
+			}
         }
         System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
+	}
+	
+	private class JFL extends URLClassLoader {
+
+		public JFL( URL[] urls, ClassLoader parent ) {
+			super( urls, parent );
+			try {
+				String path = "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar";
+				String urlPath = "jar:file://" + path + "!/";
+			    addURL (new URL (urlPath));
+			    //addURL(new URL( "/S:/cb/plugins/memorystone-2.0.0-SNAPSHOT.jar") );
+			} catch ( MalformedURLException e ) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+		
 	}
 	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
@@ -54,17 +76,17 @@ public class ClojurePlugin extends BasePlugin {
 			Class<?> cls = Class.forName("cljminecraft.ClojurePlugin");
 			System.out.println(cls);
 
-			URLClassLoader cl = new URLClassLoader(((URLClassLoader)
+			URLClassLoader cl = new JFL(((URLClassLoader)
 //					this.getClass().getClassLoader()
 					cls.getClassLoader()
 					).getURLs(), cls.getClassLoader());
-
+			
 			
 			Thread.currentThread().setContextClassLoader(
 //				new clojure.lang.DynamicClassLoader(previous)); 
 //				new clojure.lang.DynamicClassLoader(this.getClass().getClassLoader()));
-				new clojure.lang.DynamicClassLoader(cl));
-//				cl);
+//				new clojure.lang.DynamicClassLoader(cl));
+				cl);
 //				cls.getClassLoader() );
 //			Thread.currentThread().setContextClassLoader(cl);
 			
