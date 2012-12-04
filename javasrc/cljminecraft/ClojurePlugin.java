@@ -17,13 +17,13 @@ import java.util.logging.*;
  */
 public class ClojurePlugin extends BasePlugin {
 	
-	public final static String selfPluginName="cljminecraft";
-	public final static String selfCoreScript="cljminecraft.core";
-	public final static String selfEnableFunction="on-enable";
-	public final static String selfDisableFunction="on-disable";
-	public final static String childPlugin_EnableFunction="enable-plugin";
-	public final static String childPlugin_DisableFunction="disable-plugin";
-	public final static String childPlugin_CoreScript="core";
+	private final static String selfPluginName="cljminecraft";
+	private final static String selfCoreScript="cljminecraft.core";
+	private final static String selfEnableFunction="on-enable";
+	private final static String selfDisableFunction="on-disable";
+//	private final static String childPlugin_EnableFunction="enable-plugin";
+//	private final static String childPlugin_DisableFunction="disable-plugin";
+//	private final static String childPlugin_CoreScript="core";
 	
     private boolean loadClojureFile(String cljFile) {
         try {
