@@ -25,10 +25,8 @@ public abstract class BasePlugin extends JavaPlugin{
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
-	private ClassLoader thisPluginSClassLoader=null;//each (main/child)plugin can have (different)one
 	
-	
-	static {
+	static {//static initializer block
 		boolean asserts=false;
 		assert (true == (asserts=true));
 		PrintStream boo;
@@ -143,40 +141,6 @@ public abstract class BasePlugin extends JavaPlugin{
         return cp;
 	}
 	
-	public ClassLoader getOurClassLoader() {
-		if ( null == thisPluginSClassLoader ) {
-			// one time (for the current plugin) classloader set
-			Class<?> cls = this.getClass();
-			URL url;
-			try {
-				url=this.getFile().toURI().toURL();
-				
-			} catch ( MalformedURLException e ) {// TODO Auto-generated catch block
-				e.printStackTrace();
-				throw new RuntimeException("should not happen",e);
-			}
-			
-			assert null != url;
-			URL urls[] = {
-				url
-			};
-			
-			thisPluginSClassLoader = new URLClassLoader( urls, cls.getClassLoader() );
-//			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, thisPluginSClassLoader ) );
-			//XXX: why isn't the above equivalent to the below? hmm...
-//			Thread.currentThread().setContextClassLoader( thisPluginSClassLoader );//oh wait this isn't working either, at this location
-		}
-		
-		assert null != thisPluginSClassLoader;
-		
-//		assert clojure.lang.RT.baseLoader() == thisPluginSClassLoader;
-				
-//		assert (clojure.lang.Compiler.LOADER.isBound());
-//		assert clojure.lang.RT.baseLoader() == clojure.lang.Compiler.LOADER.deref();
-//		assert thisPluginSClassLoader == clojure.lang.Compiler.LOADER.deref();
-//		return (ClassLoader)clojure.lang.Compiler.LOADER.deref();
-		return thisPluginSClassLoader;
-	}
 	
     public final void info(String msg) {
     	PluginDescriptionFile descFile = getDescription();
