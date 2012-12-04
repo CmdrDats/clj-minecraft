@@ -21,10 +21,6 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfCoreScript="cljminecraft.core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
-//	private final static String childPlugin_EnableFunction="enable-plugin";
-//	private final static String childPlugin_DisableFunction="disable-plugin";
-//	private final static String childPlugin_CoreScript="core";
-	
 	
 	
 	//XXX: this works only for cljminecraft plugin, or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
@@ -32,32 +28,21 @@ public class ClojurePlugin extends BasePlugin {
     private boolean loadClojureFile(String cljFile) {
     	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
-
-//            System.out.println("ClassLoader of thread: "+Thread.currentThread().getContextClassLoader());
-//            System.out.println("ClassLoader of this: "+this.getClass().getClassLoader());
-
-            ClassLoader 
-//            previous=null;
-//    		if ( selfPluginName.equals( getDescription().getName() ) ) {
-    			previous = Thread.currentThread().getContextClassLoader();
-    			Thread.currentThread().setContextClassLoader(this.getClass().getClassLoader());
-//    		}
+			ClassLoader previous = Thread.currentThread().getContextClassLoader();
+			Thread.currentThread().setContextClassLoader( this.getClass().getClassLoader() );
 			try {
 				System.out.println( "loading clojure file: " + cljFile );
-//				clojure.lang.RT.var( init )
 				clojure.lang.RT.loadResourceScript( cljFile );
 				
 			} finally {
-//				if ( selfPluginName.equals( getDescription().getName() ) ) {
-					Thread.currentThread().setContextClassLoader( previous );
-//				}
+				Thread.currentThread().setContextClassLoader( previous );
 			}
-            return true;
-        } catch (Exception e) {
-            System.out.println("Something broke setting up Clojure");
-            e.printStackTrace();
-            return false;
-        }
+			return true;
+		} catch ( Exception e ) {
+			System.out.println( "Something broke setting up Clojure" );
+			e.printStackTrace();
+			return false;
+		}
     }
     
 	
@@ -70,16 +55,6 @@ public class ClojurePlugin extends BasePlugin {
     	return clojure.lang.RT.var(ns, funcName).invoke(this);//passing the plugin instance as param
     }
 
-    
-//    public boolean onEnableClojureMainOrChildPlugin(String ns, String enableFunction) {
-//    	if (loadClojureNameSpace(ns)) {
-//    		invokeClojureFunction(ns, enableFunction);
-//    		return true;
-//    	}else{
-//    		return false;
-//    	}
-//    }
-
     @Override
 	public boolean start() {
     	
@@ -89,10 +64,8 @@ public class ClojurePlugin extends BasePlugin {
 		if ( selfPluginName.equals( pluginName ) ) {
 			info( "Enabling main " + pluginName + " clojure Plugin" );
 			success = loadClojureNameSpace(selfCoreScript);
-//			success = onEnableClojureMainOrChildPlugin( selfCoreScript, selfEnableFunction );
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
-//			success = loadClojureNameSpace(pluginName + "."+childPlugin_CoreScript);
 			success=true;
 		}
 
@@ -100,10 +73,6 @@ public class ClojurePlugin extends BasePlugin {
 		
 		return success;
     }
-
-//    public void onDisableClojureMainOrChildPlugin(String ns, String disableFunction) {
-//    	invokeClojureFunction(ns, disableFunction);
-//    }
 
     
     @Override
@@ -113,7 +82,6 @@ public class ClojurePlugin extends BasePlugin {
 			info( "Disabling main " + pluginName + " clojure Plugin" );
 		} else {
 			info( "Disabling child " + pluginName + " clojure Plugin" );
-//			onDisableClojureMainOrChildPlugin( pluginName + "."+childPlugin_CoreScript, childPlugin_DisableFunction );
 		}
 		invokeClojureFunction( selfCoreScript, selfDisableFunction );
 
@@ -124,11 +92,9 @@ public class ClojurePlugin extends BasePlugin {
  * 
  * main: cljminecraft.ClojurePlugin
  * depend: [cljminecraft]
- * class-loader-of: cljminecraft
  * 
  * and the name of your plugin(in your plugin.yml) should be the ns name of core.clj and core.clj should be the main script 
- * which includes the enable/disable functions which are defined by the constants: childPlugin_EnableFunction and
- * childPlugin_DisableFunction in the above
+ * which includes the two methods start and stop which take plugin instance as parameter
  * 
   */  
 }

@@ -11,7 +11,9 @@
   (log/info "Starting repl on host: %s, port %s" host port)
   (start-server :host host :port port))
 
-(defn on-enable [plugin]
+(defn on-enable
+  "to enable self or any child plugins"
+  [plugin]
   (cfg/config-defaults plugin)
   (if (cfg/get-boolean plugin "repl.enabled")
     (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))
@@ -20,9 +22,12 @@
     (resolved plugin))
   (log/info "Clojure started - %s" plugin))
 
-(defn on-disable [plugin]
+(defn on-disable
+  "to disable self or any child plugins"
+  [plugin]
   (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/stop")))]
     (resolved plugin))
   (log/info "Clojure stopped - %s" plugin))
 
 
+; could add a start and stop methods if wanted, which will be run for cljminecraft only

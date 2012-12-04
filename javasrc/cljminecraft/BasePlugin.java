@@ -14,7 +14,6 @@ public abstract class BasePlugin extends JavaPlugin{
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
-//	private final static HashMap<String,Boolean> pluginState=new /*Concurrent*/HashMap<String,Boolean>();
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	
 	static {
@@ -47,7 +46,7 @@ public abstract class BasePlugin extends JavaPlugin{
     public final void tellConsole( String msg ) {
 		// nvm; find another way to display colored msgs in console without having [INFO] prefix
 		// there's no other way it's done via ColouredConsoleSender of craftbukkit
-		// there are only two ways: colors+[INFO] prefix, or no colors + whichever prefix
+		// there are only two ways: [INFO]+colors+suffix, or no colors + whichever suffix
 		ConsoleCommandSender cons = Bukkit.getConsoleSender();
 		if (null != cons) {
 			cons.sendMessage( msg );// this will log with [INFO] level
@@ -57,29 +56,18 @@ public abstract class BasePlugin extends JavaPlugin{
 	}
     
     public void setSuccessfullyEnabled() {
-//    	String pluginName = getDescription().getName();
-    	
-//    	Boolean wasAlreadyEnabled = pluginState.get( pluginName );
 		assert (null == successfullyEnabled) || (false == successfullyEnabled.booleanValue())
-		//((null == wasAlreadyEnabled) || (false == wasAlreadyEnabled.booleanValue()))
 			:"should not have been already enabled without getting disabled first";
 		
-//    	pluginState.put( pluginName, Boolean.TRUE );
     	successfullyEnabled=Boolean.TRUE;
     }
     
     public void removeEnabledState() {
-//    	String pluginName = getDescription().getName();
-//    	Boolean state = pluginState.get( pluginName);
-//		Boolean ret = pluginState.remove( pluginName );// no point keeping the false value in I guess
-//		assert state == ret;
     	assert ((null == successfullyEnabled) || (true == successfullyEnabled.booleanValue()));
 		successfullyEnabled=null;
     }
     
     public boolean wasSuccessfullyEnabled() {
-//    	String pluginName = getDescription().getName();
-//    	Boolean state = pluginState.get( pluginName);
     	return ((null != successfullyEnabled) && (true == successfullyEnabled.booleanValue()));
     }
     
