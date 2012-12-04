@@ -28,18 +28,35 @@ public class ClojurePlugin extends BasePlugin {
 	
 	static {
 		ClassLoader previous = Thread.currentThread().getContextClassLoader();
+		showClassPath("1", previous);
 		ClassLoader classLoader = ClojurePlugin.class.getClassLoader();
+		showClassPath("2", classLoader);
 		Thread.currentThread().setContextClassLoader(classLoader);
 		try {
-			if (null != clojure.lang.RT.EMPTY_ARRAY) {//it's assumed that's never null, or at least not inited as null
-				System.out.println("First time clojure init");//this happens only once when ClojurePlugin.class gets loaded
-			}
+			//this happens only once when ClojurePlugin.class gets loaded
+			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
+			clojure.lang.RT.EMPTY_ARRAY.equals( null );//it's assumed that's never null, or at least not inited as null
 		}finally{
 //			Thread.currentThread().setContextClassLoader(previous);hmm not restoring this works :O
+			//FIXME: we're losing the bukkit classpath ?
+/*
+10:48:14 [INFO] ==1== For classloader sun.misc.Launcher$AppClassLoader@4aad3ba4----------
+10:48:14 [INFO] { file:/S:/cb/craftbukkit-1.4.5-R0.3-20121201.071839-14.jar }
+10:48:14 [INFO] ==1== ----END---sun.misc.Launcher$AppClassLoader@4aad3ba4 ----------
+10:48:14 [INFO] ==2== For classloader org.bukkit.plugin.java.PluginClassLoader@31f39c59 ----------
+10:48:14 [INFO] { file:/S:/cb/plugins/clj-minecraft-1.0.1-SNAPSHOT-standalone.jar }
+10:48:14 [INFO] ==2== ----END---org.bukkit.plugin.java.PluginClassLoader@31f39c59 ----------
+ */
 		}
 	}
 	
-	private void showClassPath(String prefix, ClassLoader cl){
+	@Override
+	public void onLoad() {
+		//XXX: executes once for each plugin
+//		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!1onLoad!!!!!!!!!!!!!!!!!!!");
+	}
+	
+	private static void showClassPath(String prefix, ClassLoader cl){
 		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
 		System.out.println(getClassPath(cl));
 //        URL[] urls = ((URLClassLoader)cl).getURLs();
@@ -105,7 +122,7 @@ public class ClojurePlugin extends BasePlugin {
 		String file = slash >= 0 ? name.substring( slash + 1 ) : name;//"core.clj"
 		InputStream is = classLoader.getResourceAsStream(name);
 		if ( is == null ) {
-			throw new FileNotFoundException( "Can't find Clojure resource `"+name+"` on classpath `" + getClassPath()
+			throw new FileNotFoundException( "Can't find Clojure resource `"+name+"` on classpath `" + getClassPath(classLoader)
 				+"` using class loader `"+classLoader+"`");
 		}
 		//else
@@ -122,7 +139,7 @@ public class ClojurePlugin extends BasePlugin {
 		} finally {
 			is.close();//FIXME: also this
 		}
-		info( "Loaded Clojure resource `"+name+"` on classpath `" + getClassPath()
+		info( "Loaded Clojure resource `"+name+"` on classpath `" + getClassPath(classLoader)
 				+"` using class loader `"+classLoader+"`");
 	}
 	
