@@ -120,7 +120,7 @@ public class ClojurePlugin extends BasePlugin {
 
 			showClassPath( "3", (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref());
 			showClassPath( "4", Thread.currentThread().getContextClassLoader() );
-			if (getDescription().getName().equals("moomoo")) {
+			if (getDescription().getName().equals("memorystone")) {//XXX:works without this IF=="moomoo" or with IF=="memorystone"
 				Thread.currentThread().setContextClassLoader( (DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() );
 			}
 			showClassPath( "5", Thread.currentThread().getContextClassLoader() );
