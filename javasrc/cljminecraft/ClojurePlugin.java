@@ -8,9 +8,6 @@ import java.io.*;
  *
  */
 public class ClojurePlugin extends BasePlugin {
-//	static {
-//		System.err.println("!!!!!!!!!!!!!"+ClojurePlugin.class.getPackage().getName()+"!!!!!!!!!!!!!!!");
-//	}
 	
 	private final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
 	private final static String selfCoreScript=selfPluginName+".core";

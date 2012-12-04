@@ -65,16 +65,15 @@ public abstract class BasePlugin extends JavaPlugin{
 //				Symbol.intern("clojure.lang.Compiler/LOADER")//can't intern namespace qualified symbol
 ////				clojure.lang.Compiler.LOADER.sym this is actually null because there's no counterpart in clojure? :O I thought it was *loader*
 //				, newCL, true);
-//			clojure.lang.RT.set( init )
-//			clojure.lang.RT.WARN_ON_REFLECTION);
-			//no: maybe specify namespace to that *var* - can't intern namespace qualified symbol(I predict)
+//			clojure.lang.RT.WARN_ON_REFLECTION;
 			//XXX: turn on reflection warnings for all plugins (maybe add/override this in each config.yml
 			//XXX: does the above make sense? not sure how
+			//no: maybe specify namespace to that *var* - can't intern namespace qualified symbol(I predict)
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
 				Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
 				, clojure.lang.RT.T, true);
-			//(set! *warn-on-reflection* true)
+			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
 		}
