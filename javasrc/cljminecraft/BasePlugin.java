@@ -11,6 +11,8 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
+import clojure.lang.*;
+
 
 
 
@@ -55,7 +57,21 @@ public abstract class BasePlugin extends JavaPlugin{
 					return new clojure.lang.DynamicClassLoader( parentClassLoader );
 				}
 			} );
-			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );
+			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );//so this variant is the one
+//			System.err.println(clojure.lang.RT.CLOJURE_NS);
+//			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS,//just as I thought this variant won't work 
+//				Symbol.intern("clojure.lang.Compiler/LOADER")//can't intern namespace qualified symbol
+////				clojure.lang.Compiler.LOADER.sym this is actually null because there's no counterpart in clojure? :O I thought it was *loader*
+//				, newCL, true);
+//			clojure.lang.RT.set( init )
+//			clojure.lang.RT.WARN_ON_REFLECTION);
+			//no: maybe specify namespace to that *var* - can't intern namespace qualified symbol(I predict)
+			//XXX: turn on reflection warnings for all plugins (maybe add/override this in each config.yml
+			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
+				Symbol.intern("*warn-on-reflection*")
+				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
+				, clojure.lang.RT.T, true);
+			//(set! *warn-on-reflection* true)
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);//hmm not restoring this works :O
 		}
