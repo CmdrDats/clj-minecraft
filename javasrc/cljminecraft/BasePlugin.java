@@ -33,7 +33,7 @@ public abstract class BasePlugin extends JavaPlugin{
 			boo = System.out;//[INFO] when not enabled (good for production use)
 		}
 		
-		boo.println("assertions are "+(!a?"NOT ":"")+"enabled"+(!a?" (to enable pass jvm option -ea when starting bukkit":""));
+		boo.println("assertions are "+(!a?"NOT ":"")+"enabled"+(!a?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
 		ClassLoader previous = Thread.currentThread().getContextClassLoader();
 //		showClassPath("1", previous);
