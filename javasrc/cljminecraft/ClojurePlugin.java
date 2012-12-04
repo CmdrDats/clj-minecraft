@@ -44,7 +44,7 @@ public class ClojurePlugin extends BasePlugin {
 	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
 	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
 	//due to them using the same classloader (as CmdrDats said)
-    private boolean loadClojureFile(String cljFile) {
+    private synchronized boolean loadClojureFile(String cljFile) {
 //    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
         	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
@@ -57,8 +57,9 @@ public class ClojurePlugin extends BasePlugin {
 			
 
 			System.out.println(this.getClass());
-			Class<?> cls = Class.forName("cljminecraft.ClojurePlugin");
-			System.out.println(cls);
+			Class<?> cls =this.getClass(); 
+//					Class.forName("cljminecraft.ClojurePlugin");
+			System.out.println(Class.forName("cljminecraft.ClojurePlugin"));
 
 			showClassPath("6", cls.getClassLoader());
 			System.out.println("classloader of: "+getDescription().getClassLoaderOf());
@@ -93,14 +94,19 @@ public class ClojurePlugin extends BasePlugin {
 			try {
 				showClassPath("5", Thread.currentThread().getContextClassLoader());
 				showClassPath("4", ClassLoader.getSystemClassLoader());
+
+				System.out.println( "loading clojure file: " + cljFile );
 		        
-//	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
+	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));//aka *use-context-classloader*
+	        	//it's already True by default and it's required to be True else child plugins will fail to load script
 				
-	        	System.out.println( "loading clojure file: " + cljFile );
 				clojure.lang.RT.loadResourceScript( cljFile );
 			} finally {
-//				Var.popThreadBindings();
-				Thread.currentThread().setContextClassLoader( previous );
+				try{
+					Var.popThreadBindings();
+				}finally{
+					Thread.currentThread().setContextClassLoader( previous );
+				}
 			}
 //			System.out.println( "loading clojure file: " + cljFile );
 //			clojure.lang.RT.loadResourceScript( cljFile );
