@@ -1,5 +1,4 @@
 package cljminecraft;
-import java.io.*;
 
 /**
  * an instance of this class is created for every plugin (including the main cljminecraft one) that depends on cljminecraft, because

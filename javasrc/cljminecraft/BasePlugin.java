@@ -11,7 +11,6 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
-import clojure.lang.*;
 
 
 
@@ -70,7 +69,7 @@ public abstract class BasePlugin extends JavaPlugin{
 			//XXX: does the above make sense? not sure how
 			//no: maybe specify namespace to that *var* - can't intern namespace qualified symbol(I predict)
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
-				Symbol.intern("*warn-on-reflection*")
+				clojure.lang.Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
 				, clojure.lang.RT.F, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
