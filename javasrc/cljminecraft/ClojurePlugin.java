@@ -4,8 +4,11 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import clojure.lang.*;
+
 import java.io.*;
 import java.lang.ClassLoader;
+import java.net.*;
 import java.util.*;
 import java.util.logging.*;
 
@@ -23,21 +26,45 @@ public class ClojurePlugin extends BasePlugin {
 	private final static String selfDisableFunction="on-disable";
 	
 	
+	private void showClassPath(ClassLoader cl){
+		System.out.println("For classloader "+cl+" ----------");
+        URL[] urls = ((URLClassLoader)cl).getURLs();
+ 
+        for(URL url: urls){
+        	System.out.println(url.getFile());
+        }
+        System.out.println("----END---"+cl+" ----------");
+	}
 	//XXX: this works for cljminecraft plugin or for any child plugins having "class-loader-of: cljminecraft" in their plugin.yml
-	//but if that's satisfied then config.yml will be shadowed by cljminecraft
+	//but if that's satisfied then config.yml (inside the child's .jar) will be shadowed by cljminecraft(inside its .jar)
+	//due to them using the same classloader (as CmdrDats said)
     private boolean loadClojureFile(String cljFile) {
 //    	assert selfPluginName.equals( getDescription().getName() ):"you don't have to call this for other child plugins";
         try {
         	//note there is a clojure dynamic boolean var, maybe check it: *use-context-classloader*
+        	showClassPath(ClassLoader.getSystemClassLoader());
+        	 
 			ClassLoader previous = Thread.currentThread().getContextClassLoader();
-			Thread.currentThread().setContextClassLoader( this.getClass().getClassLoader() );
+			
+			showClassPath(previous);
+			showClassPath(this.getClass().getClassLoader());
+			
+			Thread.currentThread().setContextClassLoader(
+				//new clojure.lang.DynamicClassLoader(previous)); 
+				this.getClass().getClassLoader() );
 			try {
-				System.out.println( "loading clojure file: " + cljFile );
+				showClassPath(ClassLoader.getSystemClassLoader());
+				showClassPath(Thread.currentThread().getContextClassLoader());
+		        
+	        	Var.pushThreadBindings(RT.map(RT.USE_CONTEXT_CLASSLOADER, RT.T));
+	        	System.out.println( "loading clojure file: " + cljFile );
 				clojure.lang.RT.loadResourceScript( cljFile );
-				
 			} finally {
+				Var.popThreadBindings();
 				Thread.currentThread().setContextClassLoader( previous );
 			}
+//			System.out.println( "loading clojure file: " + cljFile );
+//			clojure.lang.RT.loadResourceScript( cljFile );
 			return true;
 		} catch ( Exception e ) {
 			System.out.println( "Something broke setting up Clojure" );
@@ -67,6 +94,8 @@ public class ClojurePlugin extends BasePlugin {
 			success = loadClojureNameSpace(selfCoreScript);
 		} else {
 			info( "Enabling child " + pluginName + " clojure Plugin" );
+			//the child plugin must have in plugin.yml: class-loader-of: cljminecraft
+			//or the following will fail:
 			success = loadClojureNameSpace(pluginName+".core");
 		}
 
