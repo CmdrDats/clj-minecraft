@@ -7,6 +7,6 @@ call lein uberjar
 
 rem built.jar is a folder link to your running server's plugin folder
 rem you make it by running this cmd: mklink /d built.jar c:\craftbukkit\plugins\
-if EXIST "built.jar" ( move target\clj-minecraft-*standalone*.jar built.jar )
+if EXIST "built.jar" ( move target\cljminecraft-*standalone*.jar built.jar\cljminecraft.jar )
 
 if NOT "%1" == "nopause" @pause
