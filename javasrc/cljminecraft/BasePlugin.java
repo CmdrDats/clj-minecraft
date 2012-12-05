@@ -35,6 +35,10 @@ public abstract class BasePlugin extends JavaPlugin{
 				(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
 		
+		if (null != Bukkit.getConsoleSender()) {
+			_info("you just `reload`-ed the server");
+		}
+		
 		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
 		//bukkit will then make sure cljminecraft is loaded before them
 		
