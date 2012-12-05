@@ -62,6 +62,8 @@
             ss (ServerSocket. port 0 (.getAddress bind-addr))
             _ (.close ss)
             ]
+        ;FIXME: if .close above throws then this won't be reached, hmm maybe in a way the fact that it will return true still
+        ;       means that the port is already in use by the line above .close if nothing else
         false
         )
       (catch IOException e true))
