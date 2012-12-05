@@ -22,11 +22,13 @@ that you can follow what changes, but be aware that you need to
 understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
+
 05 December 2012:
  - Rename project to be cljminecraft instead of clj-minecraft for consistency with ns
  - #2 Fix broadcastMessage typo
  - Implement logging colouring
  - Some logging cleanup
+ - Groundwork for the command framework.
 
 03 December 2012:
  - Wrote the README, finally.
@@ -48,7 +50,7 @@ then add the following to your project.clj:
 
 ```clojure
 :dev-dependencies [[org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT"]
-                   [clj-minecraft "1.0.1-SNAPSHOT"]
+                   [cljminecraft "1.0.1-SNAPSHOT"]
                    [org.clojure/clojure "1.4.0"]
                    [org.clojure/tools.logging "0.2.3"]]
 :repositories [["bukkit.snapshots" "http://repo.bukkit.org/content/repositories/snapshots"]]
