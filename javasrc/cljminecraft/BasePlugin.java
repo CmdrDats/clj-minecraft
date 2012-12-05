@@ -27,6 +27,7 @@ public abstract class BasePlugin extends JavaPlugin{
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	
 	static {//static initializer block
+		//FIXME: on server `reload` this gets re-executed, so re-check to see if it matches previous expectations (since I thought this only runs once in bukkit lifetime or so)
 		boolean asserts=false;
 		assert (true == (asserts=true));
 		
