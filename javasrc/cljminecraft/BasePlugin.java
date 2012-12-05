@@ -22,6 +22,8 @@ public abstract class BasePlugin extends JavaPlugin{
 	
 	private final static Logger logger=Bukkit.getLogger();//it would've been the same instance across both main and child plugins
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );//this is equivalent to above
+
+	private static boolean	isServerReloaded=(null != Bukkit.getConsoleSender());
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
@@ -35,14 +37,17 @@ public abstract class BasePlugin extends JavaPlugin{
 				(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
 		
-		if (null != Bukkit.getConsoleSender()) {
-			_info("you just `reload`-ed the server");
+		if (isServerReloaded()) {
+			_info("you just `reload`-ed the server OR you first time loaded this plugin via ie. plugman load");
 			//EDIT: there's one variant which may wrongly detect a `reload` if you're using this: 
 			//if you were running the server then then you just place your plugin in plugins folder and execute a 
 			//command something like `plugman load yourplugin` - it will detect it as a reload because getConsoleSender
 			//is not null at this point. (tested to be true)
 			//EDIT2: also note that if the plugin was already running doing `plugman unload it` then `plugman load it` 
 			//(or even `plugman reload it`) won't cause it to be detected as a `reload`
+			
+//			clojure.lang.Var.popThreadBindings();great there is nothing pushed
+
 		}
 		
 		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
@@ -53,7 +58,8 @@ public abstract class BasePlugin extends JavaPlugin{
 		final ClassLoader parentClassLoader = ClojurePlugin.class.getClassLoader();
 		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
-			//this happens only once when ClojurePlugin.class gets loaded
+			//this happens only once when ClojurePlugin.class gets loaded which actually happens once at bukkit server startup AND
+			//also happens every time there's a `reload` command executed
 			_info("!!!!!!!!!!!!!First time clojure init!!");
 			System.out.flush();
 			
@@ -65,6 +71,7 @@ public abstract class BasePlugin extends JavaPlugin{
 					return new clojure.lang.DynamicClassLoader( parentClassLoader );
 				}
 			} );
+			assert !clojure.lang.Compiler.LOADER.isBound();//wow this really isn't bound even after `reload` also nothing remains pushed
 			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );//so this variant is the one
 //			System.err.println(clojure.lang.RT.CLOJURE_NS);
 //			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS,//just as I thought this variant won't work 
@@ -78,11 +85,18 @@ public abstract class BasePlugin extends JavaPlugin{
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
 				clojure.lang.Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
-				, clojure.lang.RT.F, true);
+				,
+				isServerReloaded()?clojure.lang.RT.T:clojure.lang.RT.F
+//				clojure.lang.RT.F
+				, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
 		}
+	}
+	
+	public final static boolean isServerReloaded() {
+		return isServerReloaded;
 	}
 	
 	@Override
