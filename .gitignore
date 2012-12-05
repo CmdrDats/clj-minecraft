@@ -12,3 +12,4 @@ tmp
 target
 test
 *.sh
+/deploy
