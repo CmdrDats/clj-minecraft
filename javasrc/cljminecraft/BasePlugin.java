@@ -23,22 +23,25 @@ public abstract class BasePlugin extends JavaPlugin{
 	private final static Logger logger=Bukkit.getLogger();//it would've been the same instance across both main and child plugins
 //	private final static Logger logger=Logger.getLogger( "Minecraft" );//this is equivalent to above
 
+	//true when `reload` happened OR when this plugin got loaded to an already running server ie. via `plugman load pluginnamehere`
 	private static boolean	isServerReloaded=(null != Bukkit.getConsoleSender());
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	
 	static {//static initializer block
-		//FIXME: on server `reload` this gets re-executed, so re-check to see if it matches previous expectations (since I thought this only runs once in bukkit lifetime or so)
-		boolean asserts=false;
-		assert (true == (asserts=true));
-		
-		_info( "assertions are "+(!asserts?"NOT ":"")+"enabled"+
-				(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
-	
+		//XXX: on server `reload` this gets re-executed
+		if ( !isServerReloaded() ) {
+			boolean asserts = false;
+			assert ( true == ( asserts = true ) );
+			
+			_info( "assertions are " + ( !asserts ? "NOT " : "" ) + "enabled"
+				+ ( !asserts ? " (to enable pass jvm option -ea when starting bukkit)" : "" ) );
+		}
 		
 		if (isServerReloaded()) {
-			_info("you just `reload`-ed the server OR you first time loaded this plugin via ie. plugman load");
+			_info("you just `reload`-ed the server OR this plugin got loaded to an already running server ie. via `plugman load "
+					+BasePlugin.class.getPackage().getName()+"`");
 			//EDIT: there's one variant which may wrongly detect a `reload` if you're using this: 
 			//if you were running the server then then you just place your plugin in plugins folder and execute a 
 			//command something like `plugman load yourplugin` - it will detect it as a reload because getConsoleSender
@@ -46,7 +49,6 @@ public abstract class BasePlugin extends JavaPlugin{
 			//EDIT2: also note that if the plugin was already running doing `plugman unload it` then `plugman load it` 
 			//(or even `plugman reload it`) won't cause it to be detected as a `reload`
 			
-//			clojure.lang.Var.popThreadBindings();great there is nothing pushed
 
 		}
 		
@@ -58,9 +60,17 @@ public abstract class BasePlugin extends JavaPlugin{
 		final ClassLoader parentClassLoader = ClojurePlugin.class.getClassLoader();
 		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
+//			if (isServerReloaded()) {
+////				clojure.lang.Var.popThreadBindings();great there is nothing pushed
+//				assert !clojure.lang.Compiler.LOADER.isBound();
+//			}
 			//this happens only once when ClojurePlugin.class gets loaded which actually happens once at bukkit server startup AND
 			//also happens every time there's a `reload` command executed
-			_info("!!!!!!!!!!!!!First time clojure init!!");
+			if (isServerReloaded()) {
+				_info("!!!!!!!!!!!!!clojure reinit!!");
+			}else{
+				_info("!!!!!!!!!!!!!First time clojure init!!");
+			}
 			System.out.flush();
 			
 			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
@@ -86,8 +96,8 @@ public abstract class BasePlugin extends JavaPlugin{
 				clojure.lang.Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
 				,
-				isServerReloaded()?clojure.lang.RT.T:clojure.lang.RT.F
-//				clojure.lang.RT.F
+//				isServerReloaded()?clojure.lang.RT.T:clojure.lang.RT.F
+				clojure.lang.RT.F
 				, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
 		}finally{
@@ -95,7 +105,13 @@ public abstract class BasePlugin extends JavaPlugin{
 		}
 	}
 	
+	/**
+	 * @return true when `reload` happened on server<br>
+	 * OR when this plugin got loaded to an already running server ie. via `plugman load pluginnamehere`
+	 */
 	public final static boolean isServerReloaded() {
+		//TODO: find a way to know when it was actually `reload` or our plugin got inited the first time
+		//or do we simply give no support for the variant of `plugman load cljminecraft` into an already running server(after just having placed the .jar first time in plugins folder)?
 		return isServerReloaded;
 	}
 	
