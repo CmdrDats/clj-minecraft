@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.security.*;
+import java.util.*;
 import java.util.logging.*;
 
 import org.bukkit.*;
@@ -47,7 +48,7 @@ public abstract class BasePlugin extends JavaPlugin{
 		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
 			//this happens only once when ClojurePlugin.class gets loaded
-			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
+			info(BasePlugin.class,"!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
 			System.out.flush();
 			
 			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
@@ -89,15 +90,17 @@ public abstract class BasePlugin extends JavaPlugin{
 			throw new RuntimeException( "should never happen", e );
 		}
 		
-		System.out.println( "loading jar: " + jarURL );
+		info( "loading jar: " + jarURL );
 		assert clojure.lang.Compiler.LOADER.isBound();
 		( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
 	}
 	
+	public final static HashSet<Logger> x=new HashSet<Logger>();
 	public BasePlugin() {
 		super();
 		//constructor
-		info("CONSTRUCTOR");//for "+this.getFile().getAbsoluteFile()); these aren't yet set
+		x.add( logger );
+		info("CONSTRUCTOR"+x.size()+" "+logger+" "+logger.getName());//for "+this.getFile().getAbsoluteFile()); these aren't yet set
 		//XXX: an instance is created of this class for every child plugin (including the main one) 
 		//TODO: maybe add a test to make sure this didn't change in the future
 	}
@@ -147,7 +150,12 @@ public abstract class BasePlugin extends JavaPlugin{
     	tellConsole(ChatColor.GREEN+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
     }
     
-    public final void tellConsole( String msg ) {
+    public static final void info(Class cls, String msg) {
+    	String pluginName = cls.getName();
+    	tellConsole(ChatColor.YELLOW+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
+    }
+    
+    public final static void tellConsole( String msg ) {
 		// nvm; find another way to display colored msgs in console without having [INFO] prefix
 		// there's no other way it's done via ColouredConsoleSender of craftbukkit
 		// there are only two ways: [INFO]+colors+suffix, or no colors + whichever suffix
@@ -155,7 +163,7 @@ public abstract class BasePlugin extends JavaPlugin{
 		if (null != cons) {
 			cons.sendMessage( msg );// this will log with [INFO] level
 		}else {
-			logger.info(ChatColor.stripColor( msg));
+			Bukkit.getLogger().info(ChatColor.stripColor( msg));
 		}
 	}
     
