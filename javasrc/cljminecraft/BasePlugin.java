@@ -37,6 +37,12 @@ public abstract class BasePlugin extends JavaPlugin{
 		
 		if (null != Bukkit.getConsoleSender()) {
 			_info("you just `reload`-ed the server");
+			//EDIT: there's one variant which may wrongly detect a `reload` if you're using this: 
+			//if you were running the server then then you just place your plugin in plugins folder and execute a 
+			//command something like `plugman load yourplugin` - it will detect it as a reload because getConsoleSender
+			//is not null at this point. (tested to be true)
+			//EDIT2: also note that if the plugin was already running doing `plugman unload it` then `plugman load it` 
+			//(or even `plugman reload it`) won't cause it to be detected as a `reload`
 		}
 		
 		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
