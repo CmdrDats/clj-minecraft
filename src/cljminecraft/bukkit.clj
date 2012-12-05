@@ -22,10 +22,10 @@
   (.getOnlinePlayers (server)))
 
 (defn broadcast [fmt & args]
-  (.broadcaseMessage (server) (apply format fmt args)))
+  (.broadcastMessage (server) (apply format fmt args)))
 
 (defn broadcast-permission [permission fmt & args]
-  (.broadcaseMessage (server) (apply format fmt args) permission))
+  (.broadcastMessage (server) (apply format fmt args) permission))
 
 (defn world-by-name [name]
   (.getWorld (server) name))

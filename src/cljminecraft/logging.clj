@@ -1,11 +1,11 @@
 (ns cljminecraft.logging
-  (:require [clojure.tools.logging :as logging]))
+  (:import [org.bukkit Bukkit ChatColor]))
 
 (defmacro info [fmt & args]
-  `(logging/info (format ~(str (.getName *ns*) ":" fmt) ~@args)))
+  `(.sendMessage (Bukkit/getConsoleSender) (format ~(str ChatColor/GREEN (.getName *ns*) ChatColor/RESET ":" ChatColor/BLUE (:line (meta &form)) ChatColor/RESET " - " fmt) ~@args)))
 
 (defmacro warn [fmt & args]
-  `(logging/warn (format ~(str (.getName *ns*) ":" fmt) ~@args)))
+  `(.sendMessage (Bukkit/getConsoleSender) (format ~(str ChatColor/YELLOW (.getName *ns*) ChatColor/RESET ":" ChatColor/BLUE (:line (meta &form)) ChatColor/RESET " - " fmt) ~@args)))
 
 (defmacro debug [fmt & args]
-  `(logging/debug (format ~(str (.getName *ns*) ":" fmt) ~@args)))
+  `(.sendMessage (Bukkit/getConsoleSender) (format ~(str ChatColor/RED (.getName *ns*) ChatColor/RESET ":" ChatColor/BLUE (:line (meta &form)) ChatColor/RESET " - " fmt) ~@args)))

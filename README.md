@@ -22,6 +22,11 @@ that you can follow what changes, but be aware that you need to
 understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
+05 December 2012:
+ - Rename project to be cljminecraft instead of clj-minecraft for consistency with ns
+ - #2 Fix broadcastMessage typo
+ - Implement logging colouring
+ - Some logging cleanup
 
 03 December 2012:
  - Wrote the README, finally.
