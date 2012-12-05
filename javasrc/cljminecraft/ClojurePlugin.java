@@ -16,13 +16,13 @@ public class ClojurePlugin extends BasePlugin {
     private boolean loadClojureFile(String cljFile) {//no synchronized needed
         try {
 			
-			System.out.println( "About to load clojure file: " + cljFile );
+			info( "About to load clojure file: " + cljFile );
 			assert clojure.lang.Compiler.LOADER.isBound();
 			clojure.lang.RT.loadResourceScript( cljFile );
 //TODO: check if default config.yml options are still the same after some other child plugin loaded, but before the shutdown/stop happens which rolls them in reverse order so you can't tell if it really works
 			return true;
 		} catch ( Exception e ) {
-			System.err.println( "Something broke setting up Clojure" );
+			severe( "Something broke setting up Clojure" );
 			e.printStackTrace();
 			return false;
 		}

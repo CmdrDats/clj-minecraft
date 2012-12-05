@@ -20,8 +20,8 @@ public abstract class BasePlugin extends JavaPlugin{
 	
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
-	private final Logger logger=Bukkit.getLogger();
-//	private final static Logger logger=Logger.getLogger( "Minecraft" );
+	private final static Logger logger=Bukkit.getLogger();//it would've been the same instance across both main and child plugins
+//	private final static Logger logger=Logger.getLogger( "Minecraft" );//this is equivalent to above
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
@@ -29,14 +29,9 @@ public abstract class BasePlugin extends JavaPlugin{
 	static {//static initializer block
 		boolean asserts=false;
 		assert (true == (asserts=true));
-		PrintStream boo;
-		if ( asserts ) {
-			boo = System.err;//[SEVERE] when enabled (bad for production use)
-		} else {
-			boo = System.out;//[INFO] when not enabled (good for production use)
-		}
 		
-		boo.println("assertions are "+(!asserts?"NOT ":"")+"enabled"+(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
+		_info( "assertions are "+(!asserts?"NOT ":"")+"enabled"+
+				(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
 	
 		
 		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
@@ -48,7 +43,7 @@ public abstract class BasePlugin extends JavaPlugin{
 		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
 			//this happens only once when ClojurePlugin.class gets loaded
-			info(BasePlugin.class,"!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
+			_info("!!!!!!!!!!!!!First time clojure init!!");
 			System.out.flush();
 			
 			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
@@ -90,25 +85,24 @@ public abstract class BasePlugin extends JavaPlugin{
 			throw new RuntimeException( "should never happen", e );
 		}
 		
-		info( "loading jar: " + jarURL );
+		info( "loaded jar: " + jarURL );
 		assert clojure.lang.Compiler.LOADER.isBound();
 		( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
 	}
 	
-	public final static HashSet<Logger> x=new HashSet<Logger>();
 	public BasePlugin() {
 		super();
 		//constructor
-		x.add( logger );
-		info("CONSTRUCTOR"+x.size()+" "+logger+" "+logger.getName());//for "+this.getFile().getAbsoluteFile()); these aren't yet set
+		info("CONSTRUCTOR");//for "+this.getFile().getAbsoluteFile()); these aren't yet set
+		//we don't know yet for which plugin we got constructed
 		//XXX: an instance is created of this class for every child plugin (including the main one) 
 		//TODO: maybe add a test to make sure this didn't change in the future
 	}
 	
 	public static void showClassPath(String prefix, ClassLoader cl){
-		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
-		System.out.println(getClassPath(cl));
-        System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
+		_info("=="+prefix+"== For classloader "+cl+" ----------");
+		_info(getClassPath(cl));
+		_info("=="+prefix+"== ----END---"+cl+" ----------");
 	}
 	
 	
@@ -142,6 +136,9 @@ public abstract class BasePlugin extends JavaPlugin{
         return cp;
 	}
 	
+	public final void severe(String msg) {
+		info(ChatColor.RED+"[SEVERE] "+ChatColor.RESET+msg);//because colored won't show [SEVERE] only [INFO] level msgs
+	}
 	
     public final void info(String msg) {
     	PluginDescriptionFile descFile = getDescription();
@@ -150,9 +147,13 @@ public abstract class BasePlugin extends JavaPlugin{
     	tellConsole(ChatColor.GREEN+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
     }
     
+    public static final void _info(String msg) {
+    	info(BasePlugin.class, msg);
+    }
+    
     public static final void info(Class cls, String msg) {
-    	String pluginName = cls.getName();
-    	tellConsole(ChatColor.YELLOW+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
+    	String className = cls.getName();//we won't know the difference if we're in main or child plugins (cljminecraft or memorystone) because they both use the same main class to start
+    	tellConsole(ChatColor.DARK_AQUA+"["+className+"]"+ChatColor.RESET+" "+msg);//the color is likely never seen due to not inited color console sender
     }
     
     public final static void tellConsole( String msg ) {
@@ -163,7 +164,7 @@ public abstract class BasePlugin extends JavaPlugin{
 		if (null != cons) {
 			cons.sendMessage( msg );// this will log with [INFO] level
 		}else {
-			Bukkit.getLogger().info(ChatColor.stripColor( msg));
+			logger.info(ChatColor.stripColor( msg));
 		}
 	}
     
