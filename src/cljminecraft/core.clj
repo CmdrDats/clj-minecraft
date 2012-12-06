@@ -11,7 +11,10 @@
   (log/info "Starting repl on host: %s, port %s" host port)
   (start-server :host host :port port))
 
+(defonce clj-plugin (atom nil))
+
 (defn start [plugin]
+  (reset! clj-plugin plugin)
   (when (cfg/get-boolean plugin "repl.enabled")
     (log/info "Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
     (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))))
