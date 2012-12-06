@@ -13,3 +13,4 @@ target
 test
 *.sh
 /deploy
+/.settings/ccw.repl.cmdhistory.prefs
