@@ -55,7 +55,7 @@
     (glue "." package classname)))
 
 
-(defn is-port-in-use [port bind]
+(defn port-in-use? [port bind]
   (let [bind-addr (if (InetSocketAddress. bind port) (InetSocketAddress. port))]
     (try
       (let [

@@ -45,7 +45,7 @@
           repl-port (cfg/get-int plugin "repl.port")
           ]
     (when repl-enabled 
-      (if (util/is-port-in-use repl-port repl-host)
+      (if (util/port-in-use? repl-port repl-host)
         (log/warn "REPL already started or port %s:%s is in use" repl-host repl-port)
         ;else
         (do 
