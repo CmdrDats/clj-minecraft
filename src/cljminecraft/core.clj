@@ -22,7 +22,7 @@
 
 (defn stop-repl
   []
-  (if repl-handle
+  (if @repl-handle
     (try
       (do 
         (stop-server @repl-handle)
