@@ -1,5 +1,5 @@
 @rem needs this lein.bat https://github.com/technomancy/leiningen/blob/master/bin/lein.bat
-	@rem put it in PATH or near this .bat file
+	@rem put it in PATH
 
 @echo off
 

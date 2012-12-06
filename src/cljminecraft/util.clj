@@ -1,6 +1,9 @@
 (ns cljminecraft.util
   (:require [clojure.set :as set])
-  (:require [cljminecraft.logging :as log]))
+  (:require [cljminecraft.logging :as log])
+  (:import (java.net ServerSocket InetSocketAddress))
+  (:import (java.io IOException))
+  )
 
 (defmacro map-enums [enumclass]
   `(apply merge (map #(hash-map (keyword (.toLowerCase (.name %))) %) (~(symbol (apply str (name enumclass) "/values"))))))
@@ -50,4 +53,21 @@
         classname (camelcase (last split))
         package (apply glue "." base-package (pop (vec split)))]
     (glue "." package classname)))
+
+
+(defn is-port-in-use [port bind]
+  (let [bind-addr (if (InetSocketAddress. bind port) (InetSocketAddress. port))]
+    (try
+      (let [
+            ss (ServerSocket. port 0 (.getAddress bind-addr))
+            _ (.close ss)
+            ]
+        ;FIXME: if .close above throws then this won't be reached, hmm maybe in a way the fact that it will return true still
+        ;       means that the port is already in use by the line above .close if nothing else
+        false
+        )
+      (catch IOException e true))
+    )
+  )
+
 
