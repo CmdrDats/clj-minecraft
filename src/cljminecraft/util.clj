@@ -58,14 +58,7 @@
 (defn port-in-use? [port bind]
   (let [bind-addr (if (InetSocketAddress. bind port) (InetSocketAddress. port))]
     (try
-      (let [
-            ss (ServerSocket. port 0 (.getAddress bind-addr))
-            _ (.close ss)
-            ]
-        ;FIXME: if .close above throws then this won't be reached, hmm maybe in a way the fact that it will return true still
-        ;       means that the port is already in use by the line above .close if nothing else
-        false
-        )
+      (with-open [ss (ServerSocket. port 0 (.getAddress bind-addr))] false)
       (catch IOException e true))
     )
   )
