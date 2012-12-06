@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.security.*;
+import java.util.*;
 import java.util.logging.*;
 
 import org.bukkit.*;
@@ -19,24 +20,37 @@ public abstract class BasePlugin extends JavaPlugin{
 	
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
-	private final Logger logger=Bukkit.getLogger();
-//	private final static Logger logger=Logger.getLogger( "Minecraft" );
+	private final static Logger logger=Bukkit.getLogger();//it would've been the same instance across both main and child plugins
+//	private final static Logger logger=Logger.getLogger( "Minecraft" );//this is equivalent to above
+
+	//true when `reload` happened OR when this plugin got loaded to an already running server ie. via `plugman load pluginnamehere`
+	private static boolean	isServerReloaded=(null != Bukkit.getConsoleSender());
 	
 	//true if onEnable was successful, false or null(not found) if onEnable failed or was never executed
 	private Boolean successfullyEnabled=null;//each plugin will have one of these
 	
 	static {//static initializer block
-		boolean asserts=false;
-		assert (true == (asserts=true));
-		PrintStream boo;
-		if ( asserts ) {
-			boo = System.err;//[SEVERE] when enabled (bad for production use)
-		} else {
-			boo = System.out;//[INFO] when not enabled (good for production use)
+		//XXX: on server `reload` this gets re-executed
+		if ( !isServerReloaded() ) {
+			boolean asserts = false;
+			assert ( true == ( asserts = true ) );
+			
+			_info( "assertions are " + ( !asserts ? "NOT " : "" ) + "enabled"
+				+ ( !asserts ? " (to enable pass jvm option -ea when starting bukkit)" : "" ) );
 		}
 		
-		boo.println("assertions are "+(!asserts?"NOT ":"")+"enabled"+(!asserts?" (to enable pass jvm option -ea when starting bukkit)":""));
-	
+		if (isServerReloaded()) {
+			_info("you just `reload`-ed the server OR this plugin got loaded to an already running server ie. via `plugman load "
+					+BasePlugin.class.getPackage().getName()+"`");
+			//EDIT: there's one variant which may wrongly detect a `reload` if you're using this: 
+			//if you were running the server then then you just place your plugin in plugins folder and execute a 
+			//command something like `plugman load yourplugin` - it will detect it as a reload because getConsoleSender
+			//is not null at this point. (tested to be true)
+			//EDIT2: also note that if the plugin was already running doing `plugman unload it` then `plugman load it` 
+			//(or even `plugman reload it`) won't cause it to be detected as a `reload`
+			
+
+		}
 		
 		//this should only be executed for cljminecraft(the main not any children) plugin, and it is so if children have a depend on cljminecraft
 		//bukkit will then make sure cljminecraft is loaded before them
@@ -46,8 +60,17 @@ public abstract class BasePlugin extends JavaPlugin{
 		final ClassLoader parentClassLoader = ClojurePlugin.class.getClassLoader();
 		Thread.currentThread().setContextClassLoader(parentClassLoader);
 		try {
-			//this happens only once when ClojurePlugin.class gets loaded
-			System.out.println("!!!!!!!!!!!!!First time clojure init!!!!!!!!!!!!!!!!!!!");
+//			if (isServerReloaded()) {
+////				clojure.lang.Var.popThreadBindings();great there is nothing pushed
+//				assert !clojure.lang.Compiler.LOADER.isBound();
+//			}
+			//this happens only once when ClojurePlugin.class gets loaded which actually happens once at bukkit server startup AND
+			//also happens every time there's a `reload` command executed
+			if (isServerReloaded()) {
+				_info("!!!!!!!!!!!!!clojure reinit!!");
+			}else{
+				_info("!!!!!!!!!!!!!First time clojure init!!");
+			}
 			System.out.flush();
 			
 			clojure.lang.DynamicClassLoader newCL = (clojure.lang.DynamicClassLoader)AccessController.doPrivileged( new PrivilegedAction() {
@@ -58,6 +81,7 @@ public abstract class BasePlugin extends JavaPlugin{
 					return new clojure.lang.DynamicClassLoader( parentClassLoader );
 				}
 			} );
+			assert !clojure.lang.Compiler.LOADER.isBound();//wow this really isn't bound even after `reload` also nothing remains pushed
 			clojure.lang.Var.pushThreadBindings( clojure.lang.RT.map( clojure.lang.Compiler.LOADER, newCL) );//so this variant is the one
 //			System.err.println(clojure.lang.RT.CLOJURE_NS);
 //			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS,//just as I thought this variant won't work 
@@ -71,11 +95,24 @@ public abstract class BasePlugin extends JavaPlugin{
 			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
 				clojure.lang.Symbol.intern("*warn-on-reflection*")
 				//there's no accessible java field from which to get the symbol directly (they are non-public but there in RT nd Compiler classes)
-				, clojure.lang.RT.F, true);
+				,
+//				isServerReloaded()?clojure.lang.RT.T:clojure.lang.RT.F
+				clojure.lang.RT.F
+				, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
 		}
+	}
+	
+	/**
+	 * @return true when `reload` happened on server<br>
+	 * OR when this plugin got loaded to an already running server ie. via `plugman load pluginnamehere`
+	 */
+	public final static boolean isServerReloaded() {
+		//TODO: find a way to know when it was actually `reload` or our plugin got inited the first time
+		//or do we simply give no support for the variant of `plugman load cljminecraft` into an already running server(after just having placed the .jar first time in plugins folder)?
+		return isServerReloaded;
 	}
 	
 	@Override
@@ -89,7 +126,7 @@ public abstract class BasePlugin extends JavaPlugin{
 			throw new RuntimeException( "should never happen", e );
 		}
 		
-		System.out.println( "loading jar: " + jarURL );
+		info( "loaded jar: " + jarURL );
 		assert clojure.lang.Compiler.LOADER.isBound();
 		( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
 	}
@@ -98,14 +135,15 @@ public abstract class BasePlugin extends JavaPlugin{
 		super();
 		//constructor
 		info("CONSTRUCTOR");//for "+this.getFile().getAbsoluteFile()); these aren't yet set
+		//we don't know yet for which plugin we got constructed
 		//XXX: an instance is created of this class for every child plugin (including the main one) 
 		//TODO: maybe add a test to make sure this didn't change in the future
 	}
 	
 	public static void showClassPath(String prefix, ClassLoader cl){
-		System.out.println("=="+prefix+"== For classloader "+cl+" ----------");
-		System.out.println(getClassPath(cl));
-        System.out.println("=="+prefix+"== ----END---"+cl+" ----------");
+		_info("=="+prefix+"== For classloader "+cl+" ----------");
+		_info(getClassPath(cl));
+		_info("=="+prefix+"== ----END---"+cl+" ----------");
 	}
 	
 	
@@ -139,6 +177,9 @@ public abstract class BasePlugin extends JavaPlugin{
         return cp;
 	}
 	
+	public final void severe(String msg) {
+		info(ChatColor.RED+"[SEVERE] "+ChatColor.RESET+msg);//because colored won't show [SEVERE] only [INFO] level msgs
+	}
 	
     public final void info(String msg) {
     	PluginDescriptionFile descFile = getDescription();
@@ -147,7 +188,16 @@ public abstract class BasePlugin extends JavaPlugin{
     	tellConsole(ChatColor.GREEN+"["+pluginName+"]"+ChatColor.RESET+" "+msg);
     }
     
-    public final void tellConsole( String msg ) {
+    public static final void _info(String msg) {
+    	info(BasePlugin.class, msg);
+    }
+    
+    public static final void info(Class cls, String msg) {
+    	String className = cls.getName();//we won't know the difference if we're in main or child plugins (cljminecraft or memorystone) because they both use the same main class to start
+    	tellConsole(ChatColor.DARK_AQUA+"["+className+"]"+ChatColor.RESET+" "+msg);//the color is likely never seen due to not inited color console sender
+    }
+    
+    public final static void tellConsole( String msg ) {
 		// nvm; find another way to display colored msgs in console without having [INFO] prefix
 		// there's no other way it's done via ColouredConsoleSender of craftbukkit
 		// there are only two ways: [INFO]+colors+suffix, or no colors + whichever suffix

@@ -5,19 +5,67 @@
             [cljminecraft.logging :as log]
             [cljminecraft.config :as cfg]
             [cljminecraft.files]
-            [clojure.tools.nrepl.server :refer (start-server stop-server)]))
+            [clojure.tools.nrepl.server :refer (start-server stop-server)])
+)
+
+(def repl-handle (atom nil))
 
 (defn start-repl [host port]
   (log/info "Starting repl on host: %s, port %s" host port)
-  (start-server :host host :port port))
+  (if (compare-and-set! repl-handle nil (start-server :host host :port port))
+    (log/info "Started repl on host: %s, port %s" host port)
+    ;else
+    ;I guess we don't allow multiple running REPLs this way, do we want more than 1 ie. on different host/port?
+    (log/bug "you tried to start a(nother) repl while one was already started")
+    )
+  )
+
+(defn stop-repl
+  []
+  (if repl-handle
+    (try
+      (do 
+        (stop-server @repl-handle)
+        (log/info "REPL stopped")
+        )
+      (finally 
+        (reset! repl-handle nil)
+        )
+      )
+    ;else
+    (log/bug "you tried to stop REPL when it was not running")
+    )
+  )
+
+
+(defn start-repl-if-needed [plugin]
+  (let [
+          repl-enabled (cfg/get-boolean plugin "repl.enabled")
+          repl-host (cfg/get-string plugin "repl.host")
+          repl-port (cfg/get-int plugin "repl.port")
+          ]
+    (when repl-enabled 
+      (if (util/is-port-in-use repl-port repl-host)
+        (log/warn "REPL already started or port %s:%s is in use" repl-host repl-port)
+        ;else
+        (do 
+          (log/info "Repl options: %s %s %s" repl-enabled repl-host repl-port)
+          (start-repl repl-host repl-port)
+          )))))
 
 (defonce clj-plugin (atom nil))
 
-(defn start [plugin]
+(defn start 
+  "onEnable cljminecraft"
+  [plugin]
   (reset! clj-plugin plugin)
-  (when (cfg/get-boolean plugin "repl.enabled")
-    (log/info "Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
-    (start-repl (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port"))))
+  (start-repl-if-needed plugin))
+
+(defn stop
+  "onDisable cljminecraft"
+  [plugin]
+  (stop-repl))
+
 
 (defn on-enable 
   "to enable self or any child plugins"
@@ -27,10 +75,11 @@
   (let [plugin-name (.getName plugin)
         resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
     (if (not resolved)
-      (log/info "plugin didn't have a start method")
+      (log/warn "plugin %s didn't have a start function" plugin-name)
       (do 
+        ;the following line is for debugging purposes only, to be removed:
         (log/info "second Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
-        (log/info "calling child start")
+        (log/info "calling child `start` for %s" plugin-name)
         (resolved plugin))
       )
     )
@@ -43,8 +92,8 @@
   (when-let [resolved (resolve (symbol (str (.getName plugin) ".core/stop")))]
     (resolved plugin))
   (log/info "Clojure stopped - %s" plugin)
+  ;the following line is for debugging purposes only, to be removed:
   (log/info "third Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
   )
 
 
-; could add a stop method if wanted, which will be run for cljminecraft only
