@@ -12,9 +12,9 @@
 
 (defn start-repl [host port]
   (log/info "Starting repl on host: %s, port %s" host port)
-  (if (compare-and-set! repl-handle nil (start-server :host host :port port))
+  (cond (compare-and-set! repl-handle nil (start-server :host host :port port))
     (log/info "Started repl on host: %s, port %s" host port)
-    ;else
+    :else
     ;I guess we don't allow multiple running REPLs this way, do we want more than 1 ie. on different host/port?
     (log/bug "you tried to start a(nother) repl while one was already started")
     )
@@ -22,7 +22,7 @@
 
 (defn stop-repl
   []
-  (if @repl-handle
+  (cond @repl-handle
     (try
       (do 
         (stop-server @repl-handle)
@@ -32,7 +32,7 @@
         (reset! repl-handle nil)
         )
       )
-    ;else
+    :else
     (log/bug "you tried to stop REPL when it was not running")
     )
   )
@@ -45,9 +45,9 @@
           repl-port (cfg/get-int plugin "repl.port")
           ]
     (when repl-enabled 
-      (if (util/port-in-use? repl-port repl-host)
+      (cond (util/port-in-use? repl-port repl-host)
         (log/warn "REPL already started or port %s:%s is in use" repl-host repl-port)
-        ;else
+        :else
         (do 
           (log/info "Repl options: %s %s %s" repl-enabled repl-host repl-port)
           (start-repl repl-host repl-port)
