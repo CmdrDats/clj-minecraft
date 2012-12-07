@@ -100,6 +100,11 @@ public abstract class BasePlugin extends JavaPlugin{
 				clojure.lang.RT.F
 				, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
+			
+			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
+				clojure.lang.Symbol.intern("*use-context-classloader*")
+				,clojure.lang.RT.F
+				, true);
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
 		}
