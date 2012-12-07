@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.*;
 
 
 public abstract class BasePlugin extends JavaPlugin{
+	protected final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
 	
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
@@ -133,7 +134,10 @@ public abstract class BasePlugin extends JavaPlugin{
 		
 		info( "loaded jar: " + jarURL );
 		assert clojure.lang.Compiler.LOADER.isBound();
-		( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
+		if (!getName().equals(selfPluginName)) {
+			//we don't have to add cljminecraft.jar to classpath here 
+			( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
+		}
 	}
 	
 	public BasePlugin() {

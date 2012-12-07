@@ -10,7 +10,7 @@ import java.io.*;
  */
 public class ClojurePlugin extends BasePlugin {
 	
-	private final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
+	
 	private final static String selfCoreScript=selfPluginName+".core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
