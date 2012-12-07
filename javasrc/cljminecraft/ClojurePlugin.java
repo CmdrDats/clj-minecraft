@@ -1,5 +1,7 @@
 package cljminecraft;
 
+import java.io.*;
+
 /**
  * an instance of this class is created for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
  * it will have to have in its plugin.yml the following:<br>
@@ -70,6 +72,14 @@ public class ClojurePlugin extends BasePlugin {
 
     }
     
+    @Override
+    public InputStream getResource( String fileName ) {
+    	//this is overridden only so the below comment is obvious, maybe someone could suggest another way to let coder know? of the following:
+    	//XXX: when a file within the .jar of current plugin is needed then from within clojure or java either call this method or call 
+    	//clojure.lang.RT.getResource(this.getClassLoader(), fileName); where this == plugin instance
+    	//or else it will get the file from cljminecraft not from memorystone, ie. file name like config.yml which exists in both in same location
+    	return super.getResource( fileName );
+    }
 
 /*in plugin.yml of your clojure plugin which depends on cljminecraft, these are required:
  * 
