@@ -23,6 +23,15 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+07 December 2012:
+ - Lots of work on the command abstractions:
+   o Common type autocompletion
+   o Hardcoded list autocompletion
+   o Function result autocompleion
+   o On command dispatch, convert to known types before calling command function
+   o NOTE: The command autocompletion and type conversion will change slightly soon to allow for a more customized open system where plugins can contribute with their own defmulti's
+ - Implemented the /repl start|stop [port] command
+
 05 December 2012:
  - Rename project to be cljminecraft instead of clj-minecraft for consistency with ns
  - #2 Fix broadcastMessage typo

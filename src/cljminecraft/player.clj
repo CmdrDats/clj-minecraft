@@ -52,8 +52,8 @@
   HasPlayer
   (get-player [this] this))
 
-(defn send-msg [player & msg]
-  (.sendMessage (get-player player) (apply str msg)))
+(defn send-msg [player fmt & args]
+  (.sendMessage (get-player player) (apply format fmt args)))
 
 (defn give [player material-key & [qty]]
   (let [stack (org.bukkit.inventory.ItemStack. (get materials material-key) (int (or qty 1)))
