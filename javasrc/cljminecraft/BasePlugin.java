@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.*;
 
 
 public abstract class BasePlugin extends JavaPlugin{
+	protected final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
 	
 	public final static Charset UTF8 = Charset.forName("UTF-8");
 	
@@ -100,6 +101,11 @@ public abstract class BasePlugin extends JavaPlugin{
 				clojure.lang.RT.F
 				, true);
 			//the above is equivalent to clojure code: (set! *warn-on-reflection* true)
+			
+			clojure.lang.Var.intern(clojure.lang.RT.CLOJURE_NS, 
+				clojure.lang.Symbol.intern("*use-context-classloader*")
+				,clojure.lang.RT.F
+				, true);
 		}finally{
 			Thread.currentThread().setContextClassLoader(previous);
 		}
@@ -128,7 +134,10 @@ public abstract class BasePlugin extends JavaPlugin{
 		
 		info( "loaded jar: " + jarURL );
 		assert clojure.lang.Compiler.LOADER.isBound();
-		( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
+		if (!getName().equals(selfPluginName)) {
+			//we don't have to add cljminecraft.jar to classpath here 
+			( (clojure.lang.DynamicClassLoader)clojure.lang.Compiler.LOADER.deref() ).addURL( jarURL );
+		}
 	}
 	
 	public BasePlugin() {
@@ -140,10 +149,11 @@ public abstract class BasePlugin extends JavaPlugin{
 		//TODO: maybe add a test to make sure this didn't change in the future
 	}
 	
-	public static void showClassPath(String prefix, ClassLoader cl){
+	public static String showClassPath(String prefix, ClassLoader cl){
 		_info("=="+prefix+"== For classloader "+cl+" ----------");
 		_info(getClassPath(cl));
 		_info("=="+prefix+"== ----END---"+cl+" ----------");
+		return "";
 	}
 	
 	
@@ -175,6 +185,52 @@ public abstract class BasePlugin extends JavaPlugin{
         }
         cp+="}";
         return cp;
+	}
+	
+	protected String showResources(ClassLoader cl, String file1) {
+		try {
+			Enumeration<URL> urls = cl.getResources( file1 );
+			System.out.println("all `"+file1+"` Resources: { ");
+			while (urls.hasMoreElements()) {
+				System.out.println(urls.nextElement());
+			}
+			System.out.println(" }");
+		} catch ( IOException e ) {
+			e.printStackTrace();
+		}
+		return "";
+	}
+	
+	protected int count(Enumeration e) {
+		assert null != e:"you passed null, bug somewhere";
+		int count=0;
+		while(e.hasMoreElements()) {
+			count++;
+			e.nextElement();
+		}
+		return count;
+	}
+	
+	@Override
+    public InputStream getResource( String fileName ) {
+    	//XXX: when a file within the .jar of current plugin is needed then from within clojure or java either call this method or call 
+    	//clojure.lang.RT.getResource(this.getClassLoader(), fileName); where this == plugin instance
+    	//or else it will get the file from cljminecraft not from memorystone, ie. file name like config.yml which exists in both in same location
+    	assert isNotMoreThanOneResource(fileName):"more than 1 file with the same name was detected in classpath,"
+				+showClassPath("",getClassLoader())
+				+showResources( getClassLoader(), fileName )
+				+" PLEASE SEE ABOVE ";
+    	
+    	return super.getResource( fileName );
+    }
+	
+	protected boolean isNotMoreThanOneResource(String fileName) {
+		try {
+			return count(getClassLoader().getResources( fileName )) <= 1;
+		} catch ( IOException e ) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public final void severe(String msg) {

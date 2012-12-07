@@ -1,5 +1,7 @@
 package cljminecraft;
 
+import java.io.*;
+
 /**
  * an instance of this class is created for every plugin (including the main cljminecraft one) that depends on cljminecraft, because
  * it will have to have in its plugin.yml the following:<br>
@@ -8,7 +10,7 @@ package cljminecraft;
  */
 public class ClojurePlugin extends BasePlugin {
 	
-	private final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
+	
 	private final static String selfCoreScript=selfPluginName+".core";
 	private final static String selfEnableFunction="on-enable";
 	private final static String selfDisableFunction="on-disable";
@@ -57,7 +59,6 @@ public class ClojurePlugin extends BasePlugin {
 		return success;
     }
 
-    
     @Override
 	public void stop() {//called only when onEnable didn't fail (if we did the logic right)
 		String pluginName = getDescription().getName();
