@@ -19,7 +19,7 @@
   (.getWorlds (server)))
 
 (defn online-players []
-  (.getOnlinePlayers (server)))
+  (seq (.getOnlinePlayers (server))))
 
 (defn broadcast [fmt & args]
   (.broadcastMessage (server) (apply format fmt args)))

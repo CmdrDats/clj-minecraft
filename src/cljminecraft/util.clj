@@ -63,4 +63,5 @@
     )
   )
 
-
+(defn throw-runtime [fmt & args]
+  (throw (java.lang.RuntimeException. (apply format fmt args))))

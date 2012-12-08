@@ -7,52 +7,80 @@
 
 (defn respond
   [sender fmt & args]
-  ;; This needs tweaking to handle responding with info if sender is console?
-  (plr/send-msg sender fmt args))
+  (.sendMessage sender (apply format fmt args)))
 
-(defmulti convert-type (fn [x _] (if (coll? x) (first x) x)))
+(defmulti convert-type (fn [_ x _] (if (coll? x) (first x) x)))
 
-(defmethod convert-type :string [type arg] arg)
+(defmethod convert-type :string [sender type arg] arg)
 
-(defmethod convert-type :int [type arg]
+(defmethod convert-type :int [sender type arg]
   (try
     (Integer/parseInt arg)
-    (catch Exception e nil)))
+    (catch Exception e (util/throw-runtime "Invalid integer: %s" arg))))
 
-(defmethod convert-type :player [type arg]
-  (plr/get-player arg))
+(defmethod convert-type :player [sender type arg]
+  (let [result (plr/get-player arg)]
+    (if (nil? result) (util/throw-runtime "Invalid player: %s" arg)
+        result)))
 
-(defmethod convert-type :material [type arg]
-  (get plr/materials (keyword arg)))
+(defmethod convert-type :material [sender type arg]
+  (let [result (get plr/materials (keyword arg))]
+    (if (nil? result) (util/throw-runtime "Invalid material: %s" arg)
+        result)))
 
-(defmethod convert-type :long [type arg]
+(defmethod convert-type :long [sender type arg]
   (try
     (Long/parseLong arg)
-    (catch Exception e nil)))
+    (catch Exception e (util/throw-runtime "Invalid long: %s" arg))))
 
-(defmethod convert-type :double [type arg]
+(defmethod convert-type :double [sender type arg]
   (try
     (Double/parseDouble arg)
-    (catch Exception e nil)))
+    (catch Exception e (util/throw-runtime "Invalid double: %s" arg))))
 
-(defmethod convert-type :keyword [type arg]
-  (log/info "Keywording %s" arg)
+(defmethod convert-type :keyword [sender type arg]
   (keyword arg))
 
-(defmethod convert-type :default [type arg]
-  (log/info "Default conversion of %s %s" type arg)
+(defmethod convert-type :default [sender type arg]
   (str arg))
+
+(defn arity-split [args]
+  (split-with #(not= '& %) args))
+
+(defn arity-count-match [cnt args]
+  (let [[req opt] (arity-split args)]
+    (if (empty? opt)
+      (= cnt (count req))
+      (>= cnt (count req)))))
+
+(defn check-arity [f arg-count]
+  (let [arglists (:arglists (meta f))
+        count-matched (map (partial #'arity-count-match arg-count) arglists)]
+    (empty? (filter false? count-matched))))
 
 (defn command [f param-types sender command alias args]
   (log/info "Running command %s" command)
-  (let [converted (map convert-type param-types args)
-        {:keys [msg] :as response} (apply f converted)]
-    (if msg (respond sender msg))) true)
+  (try
+    (cond
+     (not (check-arity f (count (concat [sender] args)))) (respond sender "Incorrect number of arguments for %s: %d" alias (count args))
+     :else
+     (let [converted (map (partial convert-type sender) param-types args)
+           {:keys [msg] :as response} (apply f sender converted)]
+       (if msg (respond sender msg))))
+    (catch RuntimeException e (respond sender (.getMessage e))))
+  true)
 
-(defmulti param-type-tabcomplete (fn [x _] x))
+(defmulti param-type-tabcomplete (fn [_ x _] x))
 
-(defmethod param-type-tabcomplete :player [type arg]
-  ["hello"])
+(defmethod param-type-tabcomplete :player [sender type arg]
+  (let [lower (.toLowerCase arg)]
+    (map #(.getDisplayName %)
+         (filter #(.startsWith (.toLowerCase (org.bukkit.ChatColor/stripColor (.getDisplayName %))) lower)
+                 (bk/online-players)))))
+
+(defmethod param-type-tabcomplete :material [sender type arg]
+  (let [lower (.toLowerCase arg)]
+    (filter #(.startsWith % lower) (map name (keys plr/materials)))))
 
 (defn to-string-seq [a]
   (for [i (seq a)] (if (keyword? i) (name i) (str i))))
@@ -66,8 +94,8 @@
     (cond
      (nil? param) nil
      (coll? opts) (to-string-seq opts)
-     (fn? opts) (opts sender command alias args)
-     :else (param-type-tabcomplete (or type param) (last args)))))
+     (or (var? opts) (fn? opts)) (opts sender command alias args)
+     :else (param-type-tabcomplete sender (or type param) (last args)))))
 
 (defn build-executor [f param-types]
   (proxy [TabExecutor] []

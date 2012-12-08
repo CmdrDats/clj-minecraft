@@ -23,6 +23,9 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+08 December 2012:
+ - Finished work on Commands
+
 07 December 2012:
  - Lots of work on the command abstractions:
    o Common type autocompletion

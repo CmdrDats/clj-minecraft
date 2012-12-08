@@ -47,17 +47,24 @@
 
 (defonce clj-plugin (atom nil))
 
-(defn repl-command [cmd & [port]]
+(defn repl-command [sender cmd & [port]]
   (log/info "Running repl command with %s %s" cmd port)
   (case cmd
-    :start (start-repl "0.0.0.0" (or port 4005))
+    :start (start-repl "0.0.0.0" (or port (cfg/get-int @clj-plugin "repl.port")))
     :stop (stop-repl)))
+
+(defn tabtest-command [sender & args]
+  (.sendMessage sender (apply str args)))
+
+(defn tabcomplete-reverse-first [sender command alias args]
+  [(apply str (reverse (first args)))])
 
 (defn start 
   "onEnable cljminecraft"
   [plugin]
   (reset! clj-plugin plugin)
-  (cmd/register-command @clj-plugin "repl" #'repl-command [:keyword [:start :stop]] [:int [4005]])
+  (cmd/register-command @clj-plugin "clj.repl" #'repl-command [:keyword [:start :stop]] [:int [(cfg/get-int plugin "repl.port")]])
+  (cmd/register-command @clj-plugin "clj.tabtest" #'tabtest-command :player :material [:keyword [:start :stop]] [:string #'tabcomplete-reverse-first])
   (start-repl-if-needed plugin))
 
 (defn stop

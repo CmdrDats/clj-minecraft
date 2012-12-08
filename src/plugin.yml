@@ -5,7 +5,7 @@ website: https://github.com/CmdrDats/clj-minecraft
 author: CmdrDats & aiscott
 description: Bukkit + clojure integration library
 commands:
-  repl:
+  clj.repl:
     description: Start or stop the Clojure REPL
     permission: clojure.repl
     usage: |
@@ -13,5 +13,9 @@ commands:
       Example: /<command> start - starts a REPL on the default 4005 port
       Example: /<command> start 5006 - starts a REPL on the 5006 port
       Example: /<command> stop - stop the current REPL
+  clj.tabtest:
+    description: Just a test of the tabcompletion
+    permission: clojure.tabtest
+    usage: /<command> player material (start|stop) tab-reverse-of-player-name
 
       
