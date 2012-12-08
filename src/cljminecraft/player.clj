@@ -2,6 +2,7 @@
   (:require [cljminecraft.bukkit :as bk]
             [cljminecraft.util :as util]))
 
+;; TODO: Move this to a more sensible namespace, issue #29
 (defonce materials (util/map-enums org.bukkit.Material))
 
 ;; Various player helper functions

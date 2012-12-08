@@ -5,6 +5,7 @@
             [cljminecraft.logging :as log]
             [cljminecraft.config :as cfg]
             [cljminecraft.commands :as cmd]
+            [cljminecraft.recipes :as r]
             [cljminecraft.files]
             [clojure.tools.nrepl.server :refer (start-server stop-server)]))
 

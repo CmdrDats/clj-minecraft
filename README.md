@@ -23,6 +23,11 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+09 December 2012:
+ - Implement first version of recipe wrapper functions
+   o Support for both shaped and unshaped recipes from the same function.
+   o Doesn't support more complex materials, like Wood (that has type) yet.
+
 08 December 2012:
  - Finished work on Commands
 
