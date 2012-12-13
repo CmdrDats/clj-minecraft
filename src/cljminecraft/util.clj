@@ -59,9 +59,7 @@
   (let [bind-addr (if (InetSocketAddress. bind port) (InetSocketAddress. port))]
     (try
       (with-open [ss (ServerSocket. port 0 (.getAddress bind-addr))] false)
-      (catch IOException e true))
-    )
-  )
+      (catch IOException e true))))
 
 (defn throw-runtime [fmt & args]
   (throw (java.lang.RuntimeException. (apply format fmt args))))
