@@ -66,8 +66,9 @@
      :else
      (let [converted (map (partial convert-type sender) param-types args)
            {:keys [msg] :as response} (apply f sender converted)]
+       (log/info "Responding with %s" response)
        (if msg (respond sender msg))))
-    (catch RuntimeException e (respond sender (.getMessage e))))
+    (catch RuntimeException e (.printStackTrace e) (respond sender "An error occurred with this command")))
   true)
 
 (defmulti param-type-tabcomplete (fn [_ x _] x))
