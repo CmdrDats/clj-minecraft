@@ -25,8 +25,8 @@ Changelog:
 
 14 December 2012:
  - Implement material handling types properly
-   o You can now specify [:wood :jungle :north] as a material key for (get-material)
-   o Supports everything down to [:mushroom false :north] for a non-stem north-painted mushroom block
+   - You can now specify [:wood :jungle :north] as a material key for (get-material)
+   - Supports everything down to [:mushroom false :north] for a non-stem north-painted mushroom block
  - Command Tab completion support for event types and entity types
  - Add 'spawnentity' and 'addevent' commands to showcase tabcompletion.
  - Add 'find-entity' function in entity.clj - can use that to lookup the kinds of entities
@@ -34,36 +34,26 @@ Changelog:
  - Add 'find-event' and 'describe-event' for making events easier to poke at from the REPL
  - Moved the materials to items.clj
  - The item-stack function in items.clj uses get-material
-   o This makes creating a specific itemstack straightforward and consistent (item-stack [:wood :jungle] 2)
+   - This makes creating a specific itemstack straightforward and consistent (item-stack [:wood :jungle] 2)
  - Tweak the recipes to use get-material, to make recipe material definitions very precise
  - Add some class helpers in util.clj
 
 09 December 2012:
  - Implement first version of recipe wrapper functions
-   o Support for both shaped and unshaped recipes from the same function.
-   o Doesn't support more complex materials, like Wood (that has type) yet.
+   - Support for both shaped and unshaped recipes from the same function.
+   - Doesn't support more complex materials, like Wood (that has type) yet.
 
 08 December 2012:
  - Finished work on Commands
 
 07 December 2012:
  - Lots of work on the command abstractions:
-   o Common type autocompletion
-   o Hardcoded list autocompletion
-   o Function result autocompleion
-   o On command dispatch, convert to known types before calling command function
-   o NOTE: The command autocompletion and type conversion will change slightly soon to allow for a more customized open system where plugins can contribute with their own defmulti's
+   - Common type autocompletion
+   - Hardcoded list autocompletion
+   - Function result autocompleion
+   - On command dispatch, convert to known types before calling command function
+   - NOTE: The command autocompletion and type conversion will change slightly soon to allow for a more customized open system where plugins can contribute with their own defmulti's
  - Implemented the /repl start|stop [port] command
-
-05 December 2012:
- - Rename project to be cljminecraft instead of clj-minecraft for consistency with ns
- - #2 Fix broadcastMessage typo
- - Implement logging colouring
- - Some logging cleanup
- - Groundwork for the command framework.
-
-03 December 2012:
- - Wrote the README, finally.
 
 ## Usage
 
