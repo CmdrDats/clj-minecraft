@@ -24,6 +24,7 @@ understand what changes are made and adjust your plugins accordingly.
 Changelog:
 
 14 December 2012:
+ - API Breaking Change: ev/event needs to now reference eventname as "player.player-interact" string instead of symbol.
  - Implement material handling types properly
    - You can now specify [:wood :jungle :north] as a material key for (get-material)
    - Supports everything down to [:mushroom false :north] for a non-stem north-painted mushroom block

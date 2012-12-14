@@ -8,6 +8,7 @@
 
 (defn register-event [plugin eventname f & [priority-key]]
   (let [eventclass (resolve (symbol (util/package-classname "org.bukkit.event" (str eventname "-event"))))]
+    (log/info "Registering event %s for plugin %s" eventname (.getName plugin))
     (.registerEvent
      (bk/plugin-manager)
      eventclass
@@ -24,7 +25,7 @@
   (doseq [ev events]
     (when-not (@registered-events ev)
       (swap! registered-events conj ev)
-      (register-event plugin (:classname ev) (:event-fn ev) (:priority ev))
+      (register-event plugin (:eventname ev) (:event-fn ev) (:priority ev))
       )))
 
 (defn event

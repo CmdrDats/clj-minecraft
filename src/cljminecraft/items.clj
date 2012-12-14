@@ -36,7 +36,7 @@
     `(defmethod get-new-data ~type
        [~(symbol "type") ~(symbol "material") [~@args]]
        (let [~@spec-let
-             ~(symbol "result") (~(symbol (str type ".")))]
+             ~(symbol "result") (~(symbol (str type ".")) ~(symbol "material"))]
          ~@spec-set
          ~(symbol "result"))
        )))
@@ -46,8 +46,8 @@
   [type]
   `(defmat ~type [.setFacingDirection ~(symbol "direction") blockfaces]))
 
-(defmethod get-new-data _ [type material values]
-  (let []))
+(defmat MaterialData
+  [.setData data])
 
 (defmat Tree
   [.setSpecies species treespecies]
@@ -80,7 +80,7 @@
     result))
 
 (defmethod get-new-data Rails [type material [direction onslope?]]
-  (let [result (Rail. material)
+  (let [result (Rails. material)
         dir (get blockfaces direction)]
     (if dir (.setDirection result dir (if onslope? true false)))
     result))
@@ -165,6 +165,8 @@
 (defmat SmoothBrick
   [.setMaterial texture materials])
   
+
+
 (defmethod get-new-data Mushroom [type material [stem? & pntdirs]]
   (let [result (Mushroom. material)]
     (if stem? (.setStem true))
@@ -173,7 +175,7 @@
         (.setPaintedFace result dir)))
     result))
 
-(defmethod get-new-data Vine [type material [stem? pntwest? pnteast? pntnorth? pntsouth? pntup?]]
+(defmethod get-new-data Vine [type material [& pntdirs]]
   (let [result (Vine. material)]
     (doseq [d pntdirs]
       (let [dir (get blockfaces d)]

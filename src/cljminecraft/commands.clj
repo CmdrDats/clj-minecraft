@@ -5,6 +5,7 @@
             [cljminecraft.player :as plr]
             [cljminecraft.events :as ev]
             [cljminecraft.entity :as ent]
+            [cljminecraft.items :as items]
             )
   (:import [org.bukkit.command TabExecutor]))
 
@@ -27,7 +28,7 @@
         result)))
 
 (defmethod convert-type :material [sender type arg]
-  (let [result (get plr/materials (keyword arg))]
+  (let [result (items/get-material (:keyword arg))]
     (if (nil? result) (util/throw-runtime "Invalid material: %s" arg)
         result)))
 
@@ -63,7 +64,7 @@
 
 (defmethod param-type-tabcomplete :material [sender type arg]
   (let [lower (.toLowerCase arg)]
-    (filter #(.startsWith % lower) (map name (keys plr/materials)))))
+    (filter #(.startsWith % lower) (map name (keys items/materials)))))
 
 (defmethod param-type-tabcomplete :event [sender type arg]
   (ev/find-event arg))
