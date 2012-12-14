@@ -12,10 +12,6 @@ import org.bukkit.command.*;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.*;
 
-
-
-
-
 public abstract class BasePlugin extends JavaPlugin{
 	protected final static String selfPluginName=ClojurePlugin.class.getPackage().getName();//"cljminecraft";
 	
@@ -324,5 +320,4 @@ public abstract class BasePlugin extends JavaPlugin{
 				+ " clojure Plugin because it wasn't successfully enabled previously" );
 		}
     }
-	
 }

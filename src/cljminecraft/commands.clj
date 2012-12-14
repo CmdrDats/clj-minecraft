@@ -2,7 +2,10 @@
   (:require [cljminecraft.bukkit :as bk]
             [cljminecraft.util :as util]
             [cljminecraft.logging :as log]
-            [cljminecraft.player :as plr])
+            [cljminecraft.player :as plr]
+            [cljminecraft.events :as ev]
+            [cljminecraft.entity :as ent]
+            )
   (:import [org.bukkit.command TabExecutor]))
 
 (defn respond
@@ -44,6 +47,30 @@
 (defmethod convert-type :default [sender type arg]
   (str arg))
 
+(defmethod convert-type :event [sender type arg]
+  (str arg))
+
+(defmethod convert-type :entity [sender type arg]
+  (str arg))
+
+(defmulti param-type-tabcomplete (fn [_ x _] x))
+
+(defmethod param-type-tabcomplete :player [sender type arg]
+  (let [lower (.toLowerCase arg)]
+    (map #(.getDisplayName %)
+         (filter #(.startsWith (.toLowerCase (org.bukkit.ChatColor/stripColor (.getDisplayName %))) lower)
+                 (bk/online-players)))))
+
+(defmethod param-type-tabcomplete :material [sender type arg]
+  (let [lower (.toLowerCase arg)]
+    (filter #(.startsWith % lower) (map name (keys plr/materials)))))
+
+(defmethod param-type-tabcomplete :event [sender type arg]
+  (ev/find-event arg))
+
+(defmethod param-type-tabcomplete :entity [sender type arg]
+  (ent/find-entity arg))
+
 (defn arity-split [args]
   (split-with #(not= '& %) args))
 
@@ -70,18 +97,6 @@
        (if msg (respond sender msg))))
     (catch RuntimeException e (.printStackTrace e) (respond sender "An error occurred with this command")))
   true)
-
-(defmulti param-type-tabcomplete (fn [_ x _] x))
-
-(defmethod param-type-tabcomplete :player [sender type arg]
-  (let [lower (.toLowerCase arg)]
-    (map #(.getDisplayName %)
-         (filter #(.startsWith (.toLowerCase (org.bukkit.ChatColor/stripColor (.getDisplayName %))) lower)
-                 (bk/online-players)))))
-
-(defmethod param-type-tabcomplete :material [sender type arg]
-  (let [lower (.toLowerCase arg)]
-    (filter #(.startsWith % lower) (map name (keys plr/materials)))))
 
 (defn to-string-seq [a]
   (for [i (seq a)] (if (keyword? i) (name i) (str i))))

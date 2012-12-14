@@ -10,3 +10,4 @@
     (if (instance? Directional data)
       (.getFace block (.getFacing data))
       block)))
+

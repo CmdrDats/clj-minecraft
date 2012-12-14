@@ -37,6 +37,11 @@
   [str]
   (.replaceAll (capitalize-all str) "-" ""))
 
+(defn uncamelcase
+  "Add dashes and lowercase everything"
+  [str]
+  (.substring (.toLowerCase (.replaceAll str "([A-Z])" "-$1")) 1))
+
 (defn glue [sep & strs]
   (apply str (interpose sep (filter #(and (not (nil? %)) (> (.length (.trim (str %))) 0)) strs))))
 
@@ -54,6 +59,12 @@
         package (apply glue "." base-package (pop (vec split)))]
     (glue "." package classname)))
 
+(defn class-named [class]
+  (let [split (seq (.split (.getName class) "[.]"))
+        classname (uncamelcase (last split))
+        package (apply glue "." (pop (vec split)))]
+    (glue "." package classname)))
+
 
 (defn port-in-use? [port bind]
   (let [bind-addr (if (InetSocketAddress. bind port) (InetSocketAddress. port))]
@@ -63,3 +74,11 @@
 
 (defn throw-runtime [fmt & args]
   (throw (java.lang.RuntimeException. (apply format fmt args))))
+
+(defn find-subclasses [package-name class]
+  (filter #(not (nil? %))
+          (seq (.getSubTypesOf (org.reflections.Reflections.
+                                package-name
+                                (into-array org.reflections.scanners.Scanner []))
+                               class))))
+

@@ -1,9 +1,8 @@
 (ns cljminecraft.player
   (:require [cljminecraft.bukkit :as bk]
-            [cljminecraft.util :as util]))
+            [cljminecraft.util :as util]
+            [cljminecraft.items :as items]))
 
-;; TODO: Move this to a more sensible namespace, issue #29
-(defonce materials (util/map-enums org.bukkit.Material))
 
 ;; Various player helper functions
 (defn broadcast
@@ -57,6 +56,6 @@
   (.sendMessage (get-player player) (apply format fmt args)))
 
 (defn give [player material-key & [qty]]
-  (let [stack (org.bukkit.inventory.ItemStack. (get materials material-key) (int (or qty 1)))
+  (let [stack (items/item-stack material-key qty)
         player (get-player player)]
     (.addItem (.getInventory (get-player player)) (into-array org.bukkit.inventory.ItemStack [stack]))))

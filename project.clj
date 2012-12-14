@@ -5,8 +5,8 @@
                  [org.clojure/tools.nrepl "0.2.0-RC1"]
                  [org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT"]
                  [clojure-complete "0.2.2"]
-                 [cheshire "2.0.4"]]
-  
+                 [cheshire "2.0.4"]
+                 [org.reflections/reflections "0.9.8"]]
   :javac-options [ "-d" "classes/" "-source" "1.6" "-target" "1.6"]
   :java-source-paths ["javasrc"]
 

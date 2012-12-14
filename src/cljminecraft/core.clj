@@ -1,6 +1,8 @@
 (ns cljminecraft.core
   (:require [cljminecraft.bukkit :as bk]
             [cljminecraft.events :as events]
+            [cljminecraft.entity :as ent]
+            [cljminecraft.player :as plr]
             [cljminecraft.util :as util]
             [cljminecraft.logging :as log]
             [cljminecraft.config :as cfg]
@@ -60,12 +62,22 @@
 (defn tabcomplete-reverse-first [sender command alias args]
   [(apply str (reverse (first args)))])
 
+(defn addevent-command [sender eventname message]
+  (events/register-event @clj-plugin eventname (fn [ev] (.sendMessage sender (str message ": " ev))))
+  {:msg (format "Adding event %s with message %s" eventname message)})
+
+(defn spawn-command [sender entity]
+  (ent/spawn-entity (.getLocation sender) entity)
+  (log/info "Spawning %s in front of %s" entity (.getName sender)))
+
 (defn start 
   "onEnable cljminecraft"
   [plugin]
   (reset! clj-plugin plugin)
   (cmd/register-command @clj-plugin "clj.repl" #'repl-command [:keyword [:start :stop]] [:int [(cfg/get-int plugin "repl.port")]])
   (cmd/register-command @clj-plugin "clj.tabtest" #'tabtest-command :player :material [:keyword [:start :stop]] [:string #'tabcomplete-reverse-first])
+  (cmd/register-command @clj-plugin "clj.addevent" #'addevent-command :event :string)
+  (cmd/register-command @clj-plugin "clj.spawnentity" #'spawn-command :entity)
   (start-repl-if-needed plugin))
 
 (defn stop
@@ -102,5 +114,6 @@
   ;the following line is for debugging purposes only, to be removed:
   (log/info "third Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
   )
+
 
 

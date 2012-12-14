@@ -17,5 +17,11 @@ commands:
     description: Just a test of the tabcompletion
     permission: clojure.tabtest
     usage: /<command> player material (start|stop) tab-reverse-of-player-name
-
-      
+  clj.addevent:
+    description: Get notified on event
+    permission: clojure.event
+    usage: /<command> eventname message
+  clj.spawnentity:
+    description: Spawn a given entity in front of you
+    permission: clojure.spawn
+    usage: /<command> entityname

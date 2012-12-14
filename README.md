@@ -23,6 +23,21 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+14 December 2012:
+ - Implement material handling types properly
+   o You can now specify [:wood :jungle :north] as a material key for (get-material)
+   o Supports everything down to [:mushroom false :north] for a non-stem north-painted mushroom block
+ - Command Tab completion support for event types and entity types
+ - Add 'spawnentity' and 'addevent' commands to showcase tabcompletion.
+ - Add 'find-entity' function in entity.clj - can use that to lookup the kinds of entities
+ - Tweak the event macro to be a simple function and the register-event to do the actual legwork.
+ - Add 'find-event' and 'describe-event' for making events easier to poke at from the REPL
+ - Moved the materials to items.clj
+ - The item-stack function in items.clj uses get-material
+   o This makes creating a specific itemstack straightforward and consistent (item-stack [:wood :jungle] 2)
+ - Tweak the recipes to use get-material, to make recipe material definitions very precise
+ - Add some class helpers in util.clj
+
 09 December 2012:
  - Implement first version of recipe wrapper functions
    o Support for both shaped and unshaped recipes from the same function.
