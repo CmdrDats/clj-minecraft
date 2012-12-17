@@ -220,3 +220,8 @@
     (if (instance? MaterialData material)
       (.toItemStack (or qty 1))
       (ItemStack. material (or qty 1)))))
+
+(defn drop-item [location itemstack & [naturally?]]
+  (if naturally?
+    (.dropItemNaturally (.getWorld location) itemstack)
+    (.dropItem (.getWorld location) itemstack)))

@@ -23,6 +23,12 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+17 December 2012:
+ - Implement entity searching function
+ - Drop item function
+ - Couple of world effect helper functions
+ - An initial repl.clj as a scratchpatch
+
 14 December 2012:
  - API Breaking Change: ev/event needs to now reference eventname as "player.player-interact" string instead of symbol.
  - Implement material handling types properly
