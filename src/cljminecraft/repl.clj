@@ -36,12 +36,16 @@
 (defn ondie [ev]
   (.setDeathMessage ev "You fool!"))
 
+(let [m (i/get-material [:wool :yellow])]
+  (doseq [x (range 10)
+          y (range 10)]
+    (let [l (.getLocation (plr/get-player "CmdrDats"))]
+      (.setY l (- (.getY l) 1))
+      (.setX l (- (.getX l) x))
+      (.setZ l (- (.getZ l) y))
+      (if (not= (.getType (.getBlock l)) (i/get-material :air))
+        (.sendBlockChange (plr/get-player "DatsGuest") l (.getItemType m) (.getData m))))))
+
 (ev/register-event @plugin "player.player-drop-item" #'drop-dirt)
 (ev/register-event @plugin "player.player-interact" #'interact)
 (ev/register-event @plugin "entity.player-death" #'ondie)
-
-
-
-
-
-

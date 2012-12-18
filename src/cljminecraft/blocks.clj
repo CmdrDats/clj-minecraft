@@ -1,120 +1,159 @@
 (ns cljminecraft.blocks
-  (:require [cljminecraft.items :as i]))
+  (:require [cljminecraft.logging :as log]
+            [cljminecraft.items :as i]
+            [cljminecraft.player :as plr]
+            [cljminecraft.bukkit :as bk]))
 
-(defn turn-direction
-  "Set the current facing direction, relative to the current direction (imagine current direction as north)"
-  [blockface-direction])
+(defn left-face [key]
+  ({:up :up, :down :down
+    :north :east, :east :south
+    :south :west, :west :north} key))
 
-(defn move-direction
-  "Move relative to the origin and current facing direction"
-  [[x y z]]
-  )
+(defn right-face [key]
+  ({:up :up, :down :down
+    :north :west, :west :south
+    :south :east, :east :north} key))
+
+(defn opposite-face [key]
+  ({:up :down, :down :up
+    :north :south, :south :north
+    :east :west, :west :east} key))
+
+(defn find-relative-dir [d r]
+  ({:north d :south (opposite-face d) :east (left-face d) :west (right-face d) :up :up :down :down} r))
+
+(defn move [{:keys [origin direction material painting?] :as ctx} & [relativedir x]]
+  (let [d (find-relative-dir direction relativedir)
+        startblock (.getBlock origin)
+        m (i/get-material material)]
+    (when painting?
+      (doseq [i (range (or x 1))]
+        (doto (.getRelative startblock (get i/blockfaces d) i)
+          (.setData 0)
+          (.setType (.getItemType m))
+          (.setData (.getData m)))))
+    (assoc ctx :origin (.getLocation (.getRelative startblock (get i/blockfaces d) (or x 1))))))
+
+(defn turn [{:keys [direction] :as ctx} & [relativedir]]
+  (assoc ctx :direction (find-relative-dir direction relativedir)))
+
+(defmulti run-action (fn [ctx a] (:action a)))
+(defn run-actions [ctx & actions]
+  (loop [a (first actions)
+         r (rest actions)
+         context ctx]
+    (cond
+     (nil? a) context
+     (and (coll? a) (not (map? a))) (recur (first a) (concat (rest a) r) context)
+     :else
+     (recur (first r) (rest r) (run-action context a)))))
+
+(defmethod run-action :move [ctx {:keys [direction distance]}]
+  (move ctx direction distance))
+
+(defn forward [& [x]]
+  {:action :move :direction :north :distance x})
+
+(defn back [& [x]]
+  {:action :move :direction :south :distance x})
+
+(defn left [& [x]]
+  {:action :move :direction :east :distance x})
+
+(defn right [& [x]]
+  {:action :move :direction :west :distance x})
 
 (defn up [& [x]]
-  (move-direction [0 (- 0 (or x 1)) 0]))
+  {:action :move :direction :up :distance x})
 
 (defn down [& [x]]
-  (move-direction [0 (or x 1) 0]))
+  {:action :move :direction :down :distance x})
 
-(defn left [x]
-  (move-direction [(- 0 (or x 1)) 0 0]))
 
-(defn right [x]
-  (move-direction [(or x 1) 0 0]))
-
-(defn forward [x]
-  (move-direction [0 0 (or x 1)]))
-
-(defn back [x]
-  (move-direction [0 0 (- 0 (or x 1))]))
+(defmethod run-action :turn [ctx {:keys [direction]}]
+  (turn ctx direction))
 
 (defn turn-left []
-  (turn-direction :east))
+  {:action :turn :direction :east})
 
 (defn turn-right []
-  (turn-direction :west))
-
-(defn turn-up []
-  (turn-direction :up))
-
-(defn turn-down []
-  (turn-direction :down))
+  {:action :turn :direction :west})
 
 (defn turn-around []
-  (turn-direction :south))
+  {:action :turn :direction :south})
 
-(defn material
-  "Set the current 'painted' material :none, or nil for 'pen up', ie - no effect."
-  [])
+(defmethod run-action :pen [ctx {:keys [type]}]
+  (case type
+    :up (assoc ctx :painting? false)
+    :down (assoc ctx :painting? true)
+    :toggle (assoc ctx :painting? (not (:painting? ctx)))))
 
-(defn penup [])
+(defn pen-up []
+  {:action :pen :type :up})
 
-(defn pendown [])
+(defn pen-down []
+  {:action :pen :type :down})
 
-(defn fork
-  "Run the given actions seperate to the main context. This could run parallel to your main process, but it generally means that your position is left unchanged"
-  [& actions])
+(defn pen-toggle []
+  {:action :pen :type :toggle})
 
-(defn extend-actions
-  "For the to-action, do the extended action after every movement in the to-action.."
-  [extended-actions & to-actions]
-  (for [to-action to-actions]
-    [to-action
-     (fork extended-action)]))
+(defmethod run-action :material [ctx {:keys [matkey]}]
+  (assoc ctx :material matkey))
 
-(defn test-fn
-  "Test an expression, given the current context - executing actions in the true of false block as required"
-  [fn true-block & [false-block]])
+(defn material [material-key]
+  {:action :material :matkey material-key})
 
-(defn if-material
-  "Decision branch depending on material"
-  [material-key true-block & [false-block]])
+(defmethod run-action :mark [{:keys [marks origin direction] :as ctx} {:keys [uuid]}]
+  (assoc ctx :marks (assoc marks uuid (dissoc ctx marks))))
 
-(defn run-actions
-  [origin direction])
+(defmethod run-action :jump [{:keys [marks] :as ctx} {:keys [uuid clear]}]
+  (let [mark (get marks uuid {})]
+    (merge (if clear (update-in ctx [:marks] dissoc uuid) ctx) mark)))
 
+(defn gen-mark []
+  (.toString (java.util.UUID/randomUUID)))
+
+(defn mark [m]
+  {:action :mark :uuid m})
+
+(defn jump [m & [clear-mark]]
+  {:action :jump :uuid m :clear clear-mark})
+
+(defn extrude [direction x & actions]
+  (let [m (gen-mark)]
+    (for [c (range x)]
+      [(mark m)
+       actions
+       (jump m true)
+       {:action :move :direction direction :distance 1}]
+      )))
+
+(defn setup-context [player-name]
+  {:origin (.getLocation (plr/get-player player-name))
+   :direction :north
+   :material :wool
+   :painting? true
+   :marks {}})
 
 (comment
-  "To define a house:"
-  (defn wall [length height]
-    [(fork
-      (extend-actions
-       [(forward length)]
-       (for [_ (range heigth)] (up))))
-     (penup)
-     (forward length)
-     ])
+  (def ctx (setup-context (first (.getOnlinePlayers (bk/server)))))
 
-  (defn house-walls [width length height]
-    [(wall width height)
-     (turn-right)
-     (wall length height)
-     (turn-right)
-     (wall width height)
-     (turn-right)])
+  (defn floor-part []
+    [(forward 5) (turn-right) (forward 1) (turn-right) (forward 5) (turn-left) (forward 1) (turn-left)])
 
-  (extend-actions
-      [(forward width)
-       (right length)
-       (back width)
-       (left length)]
-      (up height))
-
-  (let [marker (generate-marker)]
-    (mark marker)
-    (foward width)
-    (right length)
-    (up height)
-    (fill-to-mark marker :air)
-    (extend-actions
-      [(forward width)
-       (right length)
-       (back width)
-       (left length)]
-      (up height))))
+  (defn floor []
+    [(floor-part) (floor-part) (floor-part) (floor-part) (floor-part) (floor-part) (floor-part) (floor-part)])
 
 
+  (run-actions ctx
+               (material :air)
+               (floor) (turn-around) (up) (floor))
 
-(let [shuffled (shuffle players)]
-  (dosomething)
-  (doelsfklds))
+  (run-actions
+   ctx
+   (material :air)
+   (floor)
+   (extrude
+    :up 10
+    (forward 10) (right 10) (back 8) (left 2) (back 2) (left 8))
+   (floor)))

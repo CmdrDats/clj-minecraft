@@ -1,5 +1,6 @@
 (ns cljminecraft.items
-  (:require [cljminecraft.util :as util])
+  (:require [cljminecraft.util :as util]
+            [cljminecraft.logging :as log])
   (:require [cljminecraft.entity :as ent])
   (:import [org.bukkit TreeSpecies Material])
   (:import [org.bukkit.material
@@ -213,13 +214,12 @@
       (if (number? val)
         (.getNewData material val)
         (get-new-data (.getData material) material (rest material-key))))
-    (get materials material-key)))
+    (let [material (get materials material-key)]
+      (get-new-data (.getData material) material []))))
 
 (defn item-stack [material-key & [qty]]
   (let [material (get-material material-key)]
-    (if (instance? MaterialData material)
-      (.toItemStack (or qty 1))
-      (ItemStack. material (or qty 1)))))
+    (.toItemStack material (or qty 1))))
 
 (defn drop-item [location itemstack & [naturally?]]
   (if naturally?

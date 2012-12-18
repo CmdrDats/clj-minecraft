@@ -23,6 +23,14 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+19 December 2012:
+ - get-material now always returns MaterialData and never Material for consistency
+   - Note that this could lead to API breaks
+ - Implement the first working version of the block drawing primitives
+   - Similar idea to Logo, forward x, turn-right, forward x, extrude :up x
+ - Playing with more things in the repl.clj scratchpatch
+   - Noticed that you can send a block change to a player without changing the world.. I'll look into building the functionality to setup a 'virtual' paint mode in the block drawing. Either for all players, a list of players or a single player. It would need to track the virtual paint unless cleared so that it can resend it to players as required.
+   
 17 December 2012:
  - Implement entity searching function
  - Drop item function
