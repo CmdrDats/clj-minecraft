@@ -23,6 +23,10 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+21 December 2012:
+ - Revamp the block action definitions by introducing a 'defaction' macro
+ - Introduce cut, copy, paste and fork - still buggy though, especially for larger areas
+
 19 December 2012:
  - get-material now always returns MaterialData and never Material for consistency
    - Note that this could lead to API breaks

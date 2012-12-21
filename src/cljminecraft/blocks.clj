@@ -22,20 +22,6 @@
 (defn find-relative-dir [d r]
   ({:north d :south (opposite-face d) :east (left-face d) :west (right-face d) :up :up :down :down} r))
 
-(defn move [{:keys [origin direction material painting?] :as ctx} & [relativedir x]]
-  (let [d (find-relative-dir direction relativedir)
-        startblock (.getBlock origin)
-        m (i/get-material material)]
-    (when painting?
-      (doseq [i (range (or x 1))]
-        (doto (.getRelative startblock (get i/blockfaces d) i)
-          (.setData 0)
-          (.setType (.getItemType m))
-          (.setData (.getData m)))))
-    (assoc ctx :origin (.getLocation (.getRelative startblock (get i/blockfaces d) (or x 1))))))
-
-(defn turn [{:keys [direction] :as ctx} & [relativedir]]
-  (assoc ctx :direction (find-relative-dir direction relativedir)))
 
 (defmulti run-action (fn [ctx a] (:action a)))
 (defn run-actions [ctx & actions]
@@ -48,85 +34,166 @@
      :else
      (recur (first r) (rest r) (run-action context a)))))
 
-(defmethod run-action :move [ctx {:keys [direction distance]}]
-  (move ctx direction distance))
+(defmacro defaction [name docstring ctx-binding params & method-body]
+  (let [params (map #(symbol (.getName (symbol %))) params)]
+    `(do
+       (defn ~name ~docstring [~@params]
+         (zipmap [:action ~@(map keyword params)] [~(keyword name) ~@params]))
+       (defmethod run-action ~(keyword name) [~ctx-binding {:keys [~@params]}]
+         ~@method-body))))
+
+(defaction move
+  "Move the current point in a direction"
+  {:keys [origin material painting?] :as ctx} [direction distance]
+  (let [[direction distance]
+        (if (neg? distance) ;; If we're negative, do the opposite thing.
+          [(opposite-face direction) (Math/abs distance)]
+          [direction distance])
+        d (find-relative-dir (:direction ctx) direction)
+        startblock (.getBlock origin)
+        m (i/get-material material)]
+    (when painting?
+      (doseq [i (range (or distance 1))]
+        (doto (.getRelative startblock (get i/blockfaces d) i)
+          (.setData 0)
+          (.setType (.getItemType m))
+          (.setData (.getData m)))))
+    (assoc ctx :origin (.getLocation (.getRelative startblock (get i/blockfaces d) (or distance 1))))))
+
 
 (defn forward [& [x]]
-  {:action :move :direction :north :distance x})
+  (move :north x))
 
 (defn back [& [x]]
-  {:action :move :direction :south :distance x})
+  (move :south x))
 
 (defn left [& [x]]
-  {:action :move :direction :east :distance x})
+  (move :east x))
 
 (defn right [& [x]]
-  {:action :move :direction :west :distance x})
+  (move :west x))
 
 (defn up [& [x]]
-  {:action :move :direction :up :distance x})
+  (move :up x))
 
 (defn down [& [x]]
-  {:action :move :direction :down :distance x})
+  (move :down x))
 
 
-(defmethod run-action :turn [ctx {:keys [direction]}]
-  (turn ctx direction))
+(defaction turn
+  "Turn the direction the current context is facing"
+  {:keys [direction] :as ctx} [relativedir]
+  (assoc ctx :direction (find-relative-dir direction relativedir)))
 
 (defn turn-left []
-  {:action :turn :direction :east})
+  (turn :east))
 
 (defn turn-right []
-  {:action :turn :direction :west})
+  (turn :west))
 
 (defn turn-around []
-  {:action :turn :direction :south})
+  (turn :south))
 
-(defmethod run-action :pen [ctx {:keys [type]}]
+(defaction pen
+  "Do something with the 'pen', set whether it should paint as you move or not"
+  ctx [type]
   (case type
     :up (assoc ctx :painting? false)
     :down (assoc ctx :painting? true)
     :toggle (assoc ctx :painting? (not (:painting? ctx)))))
 
 (defn pen-up []
-  {:action :pen :type :up})
+  (pen :up))
 
 (defn pen-down []
-  {:action :pen :type :down})
+  (pen :down))
 
 (defn pen-toggle []
-  {:action :pen :type :toggle})
+  (pen :toggle))
 
-(defmethod run-action :material [ctx {:keys [matkey]}]
-  (assoc ctx :material matkey))
+(defaction material
+  "Set the current material to paint with"
+  ctx [material-key]
+  (assoc ctx :material material-key))
 
-(defn material [material-key]
-  {:action :material :matkey material-key})
+(defaction fork
+  "Run actions with ctx but don't update current ctx - effectively a subprocess"
+  ctx [actions]
+  (run-actions ctx actions)
+  ctx)
 
-(defmethod run-action :mark [{:keys [marks origin direction] :as ctx} {:keys [uuid]}]
-  (assoc ctx :marks (assoc marks uuid (dissoc ctx marks))))
-
-(defmethod run-action :jump [{:keys [marks] :as ctx} {:keys [uuid clear]}]
-  (let [mark (get marks uuid {})]
-    (merge (if clear (update-in ctx [:marks] dissoc uuid) ctx) mark)))
+(defaction mark
+  "Stow away the state of a context into a given key"
+  {:keys [marks] :as ctx} [mark]
+  (assoc ctx :marks (assoc marks mark (dissoc ctx marks))))
 
 (defn gen-mark []
   (.toString (java.util.UUID/randomUUID)))
 
-(defn mark [m]
-  {:action :mark :uuid m})
+(defaction jump
+  "Jump your pointer to a given mark"
+  {:keys [marks] :as ctx} [mark]
+  (merge ctx (get marks mark {})))
 
-(defn jump [m & [clear-mark]]
-  {:action :jump :uuid m :clear clear-mark})
+(defaction copy
+  "copy a sphere of a given radius into a mark"
+  {:keys [marks origin] :as ctx} [mark radius]
+  (let [distance (* radius radius)
+        copy-blob
+        (doall
+         (for [x (range (- 0 radius) (inc radius))
+               y (range (- 0 radius) (inc radius))
+               z (range (- 0 radius) (inc radius))
+               :when (<= (+ (* x x) (* y y) (* z z)) distance)]
+           [x y z (.getData (.getState (.getRelative (.getBlock origin) x y z)))]))
+        m (get-in ctx [:marks mark] {})]
+    (assoc ctx :marks (assoc marks mark (assoc m :copy {:radius radius :blob (doall copy-blob)})))))
+
+(defaction cut
+  "Cut a sphere of a given radius into a mark"
+  ctx [mark radius material]
+  (let [{:keys [origin] :as ctx} (run-action ctx (copy mark radius))
+        mat (i/get-material material)
+        distance (* radius radius)]
+    (doseq [x (range (- 0 radius) (inc radius))
+            y (range (- 0 radius) (inc radius))
+            z (range (- 0 radius) (inc radius))
+            :when (<= (+ (* x x) (* y y) (* z z)) distance)]
+      (let [state (.getState (.getRelative (.getBlock origin) x y z))]
+        (.setData state material)
+        (.update state true)
+        ))
+    ctx))
+
+(defaction paste
+  "Paste a previously copied or cut block against a mark"
+  {:keys [origin] :as ctx} [mark]
+  (let [{:keys [blob radius]} (get-in ctx [:marks mark :copy] {})]
+    (doseq [[x y z data] blob]
+      (let [block (.getRelative (.getBlock origin) x y z)]
+        (.setTypeIdAndData block (.getItemTypeId data) (.getData data) false)
+        ))
+    ctx))
+
+
+(defn copy-to-mark
+  "copy a block to a mark"
+  [mark]
+  {:action :copy-to-mark :mark mark})
+
+(defn cut-to-mark
+  "cut a block to a mark, replacing everything with a given material or air if not provided"
+  [mark & [material]]
+  )
+
+(defn clear-mark [mark]
+  {:action :clear-mark})
 
 (defn extrude [direction x & actions]
-  (let [m (gen-mark)]
-    (for [c (range x)]
-      [(mark m)
-       actions
-       (jump m true)
-       {:action :move :direction direction :distance 1}]
-      )))
+  (for [c (range x)]
+    (fork
+     {:action :move :direction direction :distance c}
+     actions)))
 
 (defn setup-context [player-name]
   {:origin (.getLocation (plr/get-player player-name))
@@ -152,8 +219,10 @@
   (run-actions
    ctx
    (material :air)
-   (floor)
    (extrude
     :up 10
     (forward 10) (right 10) (back 8) (left 2) (back 2) (left 8))
-   (floor)))
+   )
+
+  (run-actions ctx (material :air) (copy :my-mark 3) (up 5) (paste :my-mark)))
+
