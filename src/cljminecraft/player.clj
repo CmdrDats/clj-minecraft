@@ -3,7 +3,6 @@
             [cljminecraft.util :as util]
             [cljminecraft.items :as items]))
 
-
 ;; Various player helper functions
 (defn broadcast
   "Broadcast a message to all players"

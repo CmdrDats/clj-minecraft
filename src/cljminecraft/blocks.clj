@@ -111,6 +111,11 @@
 (defn pen-toggle []
   (pen :toggle))
 
+(defaction pen-from-mark
+  "Restore the pen state from mark"
+  ctx [mark]
+  (assoc :ctx :panting? (get-in ctx [:marks mark :painting?] true)))
+
 (defaction material
   "Set the current material to paint with"
   ctx [material-key]
@@ -147,47 +152,86 @@
                :when (<= (+ (* x x) (* y y) (* z z)) distance)]
            [x y z (.getData (.getState (.getRelative (.getBlock origin) x y z)))]))
         m (get-in ctx [:marks mark] {})]
-    (assoc ctx :marks (assoc marks mark (assoc m :copy {:radius radius :blob (doall copy-blob)})))))
+    (assoc ctx :marks (assoc marks mark (assoc m :copy {:blob (doall copy-blob)})))))
 
 (defaction cut
   "Cut a sphere of a given radius into a mark"
-  ctx [mark radius material]
-  (let [{:keys [origin] :as ctx} (run-action ctx (copy mark radius))
+  ctx [mark radius]
+  (let [{:keys [origin material] :as ctx} (run-action ctx (copy mark radius))
         mat (i/get-material material)
         distance (* radius radius)]
     (doseq [x (range (- 0 radius) (inc radius))
             y (range (- 0 radius) (inc radius))
             z (range (- 0 radius) (inc radius))
             :when (<= (+ (* x x) (* y y) (* z z)) distance)]
-      (let [state (.getState (.getRelative (.getBlock origin) x y z))]
-        (.setData state material)
-        (.update state true)
-        ))
+      (let [block (.getRelative (.getBlock origin) x y z)]
+        (.setTypeIdAndData block (.getItemTypeId mat) (.getData mat) false)))
     ctx))
 
 (defaction paste
   "Paste a previously copied or cut block against a mark"
   {:keys [origin] :as ctx} [mark]
-  (let [{:keys [blob radius]} (get-in ctx [:marks mark :copy] {})]
+  (let [{:keys [blob]} (get-in ctx [:marks mark :copy] {})]
     (doseq [[x y z data] blob]
       (let [block (.getRelative (.getBlock origin) x y z)]
-        (.setTypeIdAndData block (.getItemTypeId data) (.getData data) false)
-        ))
+        (.setTypeIdAndData block (.getItemTypeId data) (.getData data) false)))
     ctx))
 
+(defn location-to-point [origin point]
+  [(- (.getX point) (.getX origin))
+   (- (.getY point) (.getY origin))
+   (- (.getZ point) (.getZ origin))])
 
-(defn copy-to-mark
-  "copy a block to a mark"
-  [mark]
-  {:action :copy-to-mark :mark mark})
+(defaction copy-to-mark
+  "Copy a block to a mark"
+  {:keys [origin marks] :as ctx} [mark]
+  (let [[px py pz] (location-to-point origin (:origin (get marks mark)))
+        copy-blob
+        (doall
+         (for [x (range (min px 0) (max px 0))
+               y (range (min py 0) (max py 0))
+               z (range (min pz 0) (max pz 0))]
+           [x y z (.getData (.getState (.getRelative (.getBlock origin) x y z)))]))
+        m (get-in ctx [:marks mark] {})]
+    (assoc ctx :marks (assoc marks mark (assoc m :copy {:blob (doall copy-blob)})))))
 
-(defn cut-to-mark
-  "cut a block to a mark, replacing everything with a given material or air if not provided"
-  [mark & [material]]
+(defaction cut-to-mark
+  "Cut a block to a mark, replacing everything with a given material or air if not provided"
+  ctx [mark]
+  (let [{:keys [origin marks material] :as ctx} (run-action ctx (copy-to-mark mark))
+        mat (i/get-material material)
+        [px py pz] (location-to-point origin (:origin (get marks mark)))]
+    (doseq [x (range (min px 0) (max px 0))
+            y (range (min py 0) (max py 0))
+            z (range (min pz 0) (max pz 0))]
+      (let [block (.getRelative (.getBlock origin) x y z)]
+        (.setTypeIdAndData block (.getItemTypeId mat) (.getData mat) false)))
+    ctx))
+
+(defaction clear-mark
+  "Clears a mark"
+  ctx [mark]
+  (update-in ctx [:marks mark] {}))
+
+;; to be finished......
+(defaction line-to-mark
+  "Draw a line directly to a given mark from current point"
+  ctx [mark]
+  ctx
   )
 
-(defn clear-mark [mark]
-  {:action :clear-mark})
+(defn line
+  "Draw a line, relative to current position and direction"
+  [fwd lft u]
+  (let [m (gen-mark)]
+    [(mark m)
+     (pen :up)
+     (forward fwd)
+     (left lft)
+     (up u)
+     (pen-from-mark m)
+     (line-to-mark m)
+     (clear-mark m)]))
 
 (defn extrude [direction x & actions]
   (for [c (range x)]
@@ -224,5 +268,11 @@
     (forward 10) (right 10) (back 8) (left 2) (back 2) (left 8))
    )
 
-  (run-actions ctx (material :air) (copy :my-mark 3) (up 5) (paste :my-mark)))
+  (bk/ui-sync
+   @cljminecraft.core/clj-plugin
+   #(run-actions ctx (material :air) (mark :start) (left 100) (forward 100) (up 40) (cut-to-mark :start) (clear-mark :start)))
+  
+
+  
+  )
 

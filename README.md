@@ -23,6 +23,11 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+27 December 2012:
+ - Introduce cut-to-mark, copy-to-mark, pen-from-mark and clear-mark
+ - Interface of line and empty line-to-mark - have to work out the math involved
+ - Thinking about how to define a brush instead of just 'material' and 'painting?' in the context.
+ 
 21 December 2012:
  - Revamp the block action definitions by introducing a 'defaction' macro
  - Introduce cut, copy, paste and fork - still buggy though, especially for larger areas

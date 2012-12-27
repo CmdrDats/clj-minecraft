@@ -1,5 +1,6 @@
 (ns cljminecraft.core
   (:require [cljminecraft.bukkit :as bk]
+            [cljminecraft.blocks :as blocks]
             [cljminecraft.events :as events]
             [cljminecraft.entity :as ent]
             [cljminecraft.player :as plr]
