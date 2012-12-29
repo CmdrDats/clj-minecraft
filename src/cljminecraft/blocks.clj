@@ -114,7 +114,7 @@
 (defaction pen-from-mark
   "Restore the pen state from mark"
   ctx [mark]
-  (assoc :ctx :panting? (get-in ctx [:marks mark :painting?] true)))
+  (assoc :ctx :painting? (get-in ctx [:marks mark :painting?] true)))
 
 (defaction material
   "Set the current material to paint with"
@@ -214,7 +214,7 @@
   (update-in ctx [:marks mark] {}))
 
 
-(defn line
+(defn calcline
   "This returns a set of points for a line"
   [xt yt zt]
   (if (= [xt yt zt] [0 0 0])
@@ -231,14 +231,15 @@
 ;; to be finished......
 (defaction line-to-mark
   "Draw a line directly to a given mark from current point"
-  {:keys [origin material marks]} [mark]
+  {:keys [origin material marks] :as ctx} [mark]
   (let [originblock (.getBlock origin)
         mat (i/get-material material)
         point (location-to-point origin (:origin (get marks mark)))
-        linepoints (apply line point)]
+        linepoints (apply calcline point)]
     (doseq [[x y z] linepoints]
       (let [block (.getRelative originblock x y z)]
-        (.setTypeIdAndData block (.getItemTypeId mat) (.getData mat) false)))))
+        (.setTypeIdAndData block (.getItemTypeId mat) (.getData mat) false)))
+    ctx))
 
 (defn line
   "Draw a line, relative to current position and direction"
@@ -249,7 +250,7 @@
      (forward fwd)
      (left lft)
      (up u)
-     (pen-from-mark m)
+     (pen :down)
      (line-to-mark m)
      (clear-mark m)]))
 
@@ -288,11 +289,17 @@
     (forward 10) (right 10) (back 8) (left 2) (back 2) (left 8))
    )
 
-  (bk/ui-sync
-   @cljminecraft.core/clj-plugin
-   #(run-actions ctx (material :air) (mark :start) (left 100) (forward 100) (up 40) (cut-to-mark :start) (clear-mark :start)))
+  (run-actions
+   ctx
+   ;(material :air)
+   (line 10 10 10)
+   (line 1 2 3)
+   (line -5 0 0)
+   (line 0 -5 0)
+   (line 0 0 -5))
   
 
-  
-  )
+  (bk/ui-sync
+   @cljminecraft.core/clj-plugin
+   #(run-actions ctx (material :air) (mark :start) (left 100) (forward 100) (up 40) (cut-to-mark :start) (clear-mark :start))))
 

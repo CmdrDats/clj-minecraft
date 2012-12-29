@@ -2,9 +2,16 @@
   "Event handlers for bukkit"
   (:require [cljminecraft.logging :as log]
             [cljminecraft.util :as util]
-            [cljminecraft.bukkit :as bk]))
+            [cljminecraft.bukkit :as bk]
+            [cljminecraft.player :as plr]))
 
+(defonce actions (util/map-enums org.bukkit.event.block.Action))
 (defonce priorities (util/map-enums org.bukkit.event.EventPriority))
+
+(defn handle-event [f e]
+  (if-let [response (f e)]
+    (do
+      (if (:msg response) (plr/send-msg e (:msg response))))))
 
 (defn register-event [plugin eventname f & [priority-key]]
   (let [eventclass (resolve (symbol (util/package-classname "org.bukkit.event" (str eventname "-event"))))]
@@ -15,7 +22,7 @@
      (proxy [org.bukkit.event.Listener] [])
      (get priorities (or priority-key :normal))
      (proxy [org.bukkit.plugin.EventExecutor] []
-       (execute [l e] (f e)))
+       (execute [l e] (handle-event f e)))
      plugin)))
 
 (defonce registered-events

@@ -23,6 +23,12 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+29 December 2012:
+ - Now sends a message to the player triggering an event when the event function returns {:msg "..."}
+ - Fix up line function
+ - Add `actions` enum to events.clj
+ - Add `is-block` convenience function to items.clj for checking if a block is a certain material
+ 
 27 December 2012:
  - Introduce cut-to-mark, copy-to-mark, pen-from-mark and clear-mark
  - Interface of line and empty line-to-mark - have to work out the math involved

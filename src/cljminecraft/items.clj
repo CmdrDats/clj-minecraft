@@ -22,6 +22,9 @@
 (def cocoaplantsizes (util/map-enums org.bukkit.material.CocoaPlant$CocoaPlantSize))
 (def coaltypes (util/map-enums org.bukkit.CoalType))
 
+(defn is-block? [block & material-keys]
+  (contains? (set (map materials material-keys)) (.getType block)))
+
 (defmulti get-new-data
   "Returns a new MaterialData depending on Material Type"
   (fn [t _ _] t))
