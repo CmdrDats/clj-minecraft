@@ -213,6 +213,21 @@
   ctx [mark]
   (update-in ctx [:marks mark] {}))
 
+
+(defn line
+  "This returns a set of points for a line"
+  [xt yt zt]
+  (if (= [xt yt zt] [0 0 0])
+    '([0 0 0])
+    (let [q (max (Math/abs xt) (Math/abs yt) (Math/abs zt))
+          m (/ yt q)
+          n (/ zt q)
+          o (/ xt q)]
+      (for [qi (range q)]
+        [(Math/round (double (* o qi)))
+         (Math/round (double (* m qi)))
+         (Math/round (double (* n qi)))]))))
+
 ;; to be finished......
 (defaction line-to-mark
   "Draw a line directly to a given mark from current point"
