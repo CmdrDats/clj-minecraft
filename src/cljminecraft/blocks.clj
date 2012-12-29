@@ -231,9 +231,14 @@
 ;; to be finished......
 (defaction line-to-mark
   "Draw a line directly to a given mark from current point"
-  ctx [mark]
-  ctx
-  )
+  {:keys [origin material marks]} [mark]
+  (let [originblock (.getBlock origin)
+        mat (i/get-material material)
+        point (location-to-point origin (:origin (get marks mark)))
+        linepoints (apply line point)]
+    (doseq [[x y z] linepoints]
+      (let [block (.getRelative originblock x y z)]
+        (.setTypeIdAndData block (.getItemTypeId mat) (.getData mat) false)))))
 
 (defn line
   "Draw a line, relative to current position and direction"
