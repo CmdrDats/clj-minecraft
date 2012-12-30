@@ -1,6 +1,6 @@
-# clj-minecraft
+# cljminecraft
 
-clj-minecraft has two specific goals:
+cljminecraft has two specific goals:
 
 1) Open up support for other clojure plugins on Bukkit
 2) Provide convenience functions to make writing plugins more
@@ -15,13 +15,62 @@ The second objective is accomplished by the various other namespaces
 in clj-minecraft. I'm keeping the structure fairly flat and concise so
 that one can write idiomatic code for 80% of the plugin code.
 
-VERY IMPORTANT: Please realize that this plugin is still in early dev,
-API changes are fast and frequent so that I can settle on idiomatic
-and simple code. I will try to update the changelog with every (major) push so
-that you can follow what changes, but be aware that you need to
-understand what changes are made and adjust your plugins accordingly.
+## Usage
 
-Changelog:
+### Install the mod
+
+Download the latest server mod build from http://dev.bukkit.org/server-mods/cljminecraft/files/ or build it yourself by cloning the repo and `lein uberjar`
+
+Copy the jar into the Bukkit plugin folder and fire up your server. Once started, it should have opened a REPL port, by default on port 4005, so you can:
+
+```
+lein repl :connect 4005
+```
+
+Now you have an active connection to push code onto the server, let's try some stuff (the part before => is the REPL prompt...):
+```clojure
+user=> (in-ns 'cljminecraft.core)
+#<Namespace cljminecraft.core>
+cljminecraft.core=> (ev/find-event "break")
+("painting.painting-break-by-entity" "hanging.hanging-break" "painting.painting-break" "entity.entity-break-door" "hanging.hanging-break-by-entity" "player.player-item-break" "block.block-break")
+;;; block.block-break looks good.. lets see what we can get out of it
+cljminecraft.core=> (ev/describe-event "block.block-break")
+#{"setExpToDrop" "isCancelled" "getEventName" "setCancelled" "getExpToDrop" "getPlayer" "getBlock"}
+;; Cool, getBlock looks like I can use it..
+cljminecraft.core=> (defn mybreakfn [ev] {:msg (format "You broke a %s" (.getBlock ev))})
+#'cljminecraft.core/mybreakfn
+cljminecraft.core=> (ev/register-event @clj-plugin "block.block-break" #'mybreakfn)
+nil
+;; Test breaking a block, I get a crazy message, let's make that more sane
+cljminecraft.core=> (defn mybreakfn [ev] {:msg (format "You broke a %s" (.getType (.getBlock ev)))})
+#'cljminecraft.core/mybreakfn
+```
+
+And that's a quick taste of interactive development.. The Rabbit hole goes rather deep :) enjoy.
+
+### Roll your own mod
+
+Once you've got the cljminecraft mod installed on bukkit and you've played a bit with the REPL, you might want to build your own fully capable plugin:
+
+```
+lein new cljminecraft yourplugin
+```
+
+This will create a subfolder called yourplugin with the basics needed to get started, with some sample configuration in src/config.yml and the plugin.yml already setup under src/plugin.yml, ready to roll.
+
+```
+cd yourplugin
+lein jar
+cp target/*.jar /path/to/bukkit/plugins/
+```
+
+Start up your Bukkit server and go, by default, you'll see a message when you place a sign and there will be a command '/yourplugin.random' which does a dice roll. Very exciting stuff!
+
+Remember to update your details in the plugin.yml and README.md files - and very importantly, commit to github to share with the world.
+
+Time to hack away.
+
+## Changelog:
 
 30 December 2012:
  - Implement a simple permissions extension for checking and setting specific permissions on players
@@ -52,117 +101,6 @@ Changelog:
  - Playing with more things in the repl.clj scratchpatch
    - Noticed that you can send a block change to a player without changing the world.. I'll look into building the functionality to setup a 'virtual' paint mode in the block drawing. Either for all players, a list of players or a single player. It would need to track the virtual paint unless cleared so that it can resend it to players as required.
    
-17 December 2012:
- - Implement entity searching function
- - Drop item function
- - Couple of world effect helper functions
- - An initial repl.clj as a scratchpatch
-
-14 December 2012:
- - API Breaking Change: ev/event needs to now reference eventname as "player.player-interact" string instead of symbol.
- - Implement material handling types properly
-   - You can now specify [:wood :jungle :north] as a material key for (get-material)
-   - Supports everything down to [:mushroom false :north] for a non-stem north-painted mushroom block
- - Command Tab completion support for event types and entity types
- - Add 'spawnentity' and 'addevent' commands to showcase tabcompletion.
- - Add 'find-entity' function in entity.clj - can use that to lookup the kinds of entities
- - Tweak the event macro to be a simple function and the register-event to do the actual legwork.
- - Add 'find-event' and 'describe-event' for making events easier to poke at from the REPL
- - Moved the materials to items.clj
- - The item-stack function in items.clj uses get-material
-   - This makes creating a specific itemstack straightforward and consistent (item-stack [:wood :jungle] 2)
- - Tweak the recipes to use get-material, to make recipe material definitions very precise
- - Add some class helpers in util.clj
-
-09 December 2012:
- - Implement first version of recipe wrapper functions
-   - Support for both shaped and unshaped recipes from the same function.
-   - Doesn't support more complex materials, like Wood (that has type) yet.
-
-08 December 2012:
- - Finished work on Commands
-
-07 December 2012:
- - Lots of work on the command abstractions:
-   - Common type autocompletion
-   - Hardcoded list autocompletion
-   - Function result autocompleion
-   - On command dispatch, convert to known types before calling command function
-   - NOTE: The command autocompletion and type conversion will change slightly soon to allow for a more customized open system where plugins can contribute with their own defmulti's
- - Implemented the /repl start|stop [port] command
-
-## Usage
-
-To build this plugin, simply clone and call 'lein uberjar' in the
-project root (using lein 2). This will create a *-standalone.jar in the
-target folder, which you can copy to the CraftBukkit/plugins folder.
-
-NOTE that currently there is an issue with the uberjarring that
-includes the Bukkit API classes - this is not ideal and needs to be fixed.
-
-To create another clojure mod against the clj-minecraft plugin, have a
-look at http://github.com/CmdrDats/clj-memorystone for an example.
-
-In a nutshell, create a new ordinary clojure plugin using 'lein new',
-then add the following to your project.clj:
-
-```clojure
-:dev-dependencies [[org.bukkit/bukkit "1.4.5-R0.3-SNAPSHOT"]
-                   [cljminecraft "1.0.1-SNAPSHOT"]
-                   [org.clojure/clojure "1.4.0"]
-                   [org.clojure/tools.logging "0.2.3"]]
-:repositories [["bukkit.snapshots" "http://repo.bukkit.org/content/repositories/snapshots"]]
-```
-
-Then create a plugin.yml file and include this content:
-
-```
-name: projectname
-main: cljminecraft.ClojurePlugin
-version: 1.0.0
-website: project-url
-author: author-name
-description: plugin-description
-depend: [cljminecraft]
-class-loader-of: cljminecraft
-```
-
-Note that the depend and class-loader-of are very important.
-
-Once you have done this, create a file /src/[projectname]/core.clj -
-your [projectname] has to match exactly what you put in your
-plugin.yml. No dashes, underscores of fancynesses.
-
-Add the following to your core.clj:
-
-```clojure
-(ns pluginname.core
-  (:require [cljminecraft.events :as ev])
-  (:require [cljminecraft.player :as pl])
-  (:require [cljminecraft.bukkit :as bk])
-  (:require [cljminecraft.logging :as log])
-  (:require [cljminecraft.files :as files]))
-
-(defn block-break [ev]
-  (pl/send-msg ev "You broke something! oh dear."))
-  
-(defn events
-  []
-  [(ev/event block.block-break #'block-break)])
-   
-(defn start [plugin]
-  (ev/register-eventlist plugin (events)))  
-```
-
-Then run 'lein jar' from the command line on your project, copy the
-target/*.jar into your CraftBukkit/plugins folder, start the server,
-join and break something!
-
-At this point, nRepl would have started, by default on the 4005 port -
-you can hook into this with whatever editor supports nRepl so that you
-can livecode, inspect the world and push new code for your plugin
-across. This is a highly recommended way of building your plugins!
-
 ## Contributions
 
 A huge thanks to aiscott and basicsensei for their contributions to clj-minecraft!
