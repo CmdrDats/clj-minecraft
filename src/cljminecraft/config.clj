@@ -18,4 +18,8 @@
   (let [forms (map defcn types)]
     `(do ~@forms)))
 
+;; This creates the functions (get-... plugin path), eg
+;; (get-string plugin path) to get specific config
+;; entries with the correct types.
+
 (defcns string int boolean double long list string-list integer-list boolean-list double-list float-list long-list byte-list character-list short-list map-list vector offline-player item-stack configuration-section)
