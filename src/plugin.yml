@@ -25,3 +25,7 @@ commands:
     description: Spawn a given entity in front of you
     permission: clojure.spawn
     usage: /<command> entityname
+  clj.permission:
+    description: Set a permission for a given player
+    permission: clojure.permission
+    usage: /<command> player permissionname (allow|disallow|release)

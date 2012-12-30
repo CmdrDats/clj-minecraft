@@ -54,6 +54,9 @@
 (defmethod convert-type :entity [sender type arg]
   (str arg))
 
+(defmethod convert-type :permission [sender type arg]
+  (str arg))
+
 (defmulti param-type-tabcomplete (fn [_ x _] x))
 
 (defmethod param-type-tabcomplete :player [sender type arg]
@@ -71,6 +74,9 @@
 
 (defmethod param-type-tabcomplete :entity [sender type arg]
   (ent/find-entity arg))
+
+(defmethod param-type-tabcomplete :permission [sender type arg]
+  (plr/find-permission arg))
 
 (defn arity-split [args]
   (split-with #(not= '& %) args))

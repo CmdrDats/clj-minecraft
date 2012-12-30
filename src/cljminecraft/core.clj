@@ -1,7 +1,7 @@
 (ns cljminecraft.core
   (:require [cljminecraft.bukkit :as bk]
             [cljminecraft.blocks :as blocks]
-            [cljminecraft.events :as events]
+            [cljminecraft.events :as ev]
             [cljminecraft.entity :as ent]
             [cljminecraft.player :as plr]
             [cljminecraft.util :as util]
@@ -65,13 +65,37 @@
   [(apply str (reverse (first args)))])
 
 (defn addevent-command [sender eventname message]
-  (events/register-event @clj-plugin eventname (fn [ev] (.sendMessage sender (str message ": " ev))))
+  (ev/register-event @clj-plugin eventname (fn [ev] (.sendMessage sender (str message ": " ev))))
   {:msg (format "Adding event %s with message %s" eventname message)})
 
 (defn spawn-command [sender entity]
   (ent/spawn-entity (.getLocation sender) entity)
   (log/info "Spawning %s in front of %s" entity (.getName sender)))
 
+;; cljminecraft basic permission system
+(defn permission-command [sender player permission allow-type]
+  (plr/set-permission player permission allow-type))
+
+(defn player-permission-attach [ev]
+  (plr/permission-attach-player! @clj-plugin ev))
+
+(defn player-permission-detach [ev]
+  (plr/permission-detach-player! ev))
+
+(defn setup-permission-system
+  [plugin]
+  (ev/register-eventlist
+   plugin
+   [(ev/event "player.player-join" #'player-permission-attach)
+    (ev/event "player.player-quit" #'player-permission-detach)
+    (ev/event "player.player-kick" #'player-permission-detach)])
+  (plr/permission-attach-all! plugin))
+
+(defn disable-permission-system
+  [plugin]
+  (plr/permission-detach-all!))
+
+;; cljminecraft specific setup
 (defn start 
   "onEnable cljminecraft"
   [plugin]
@@ -80,19 +104,20 @@
   (cmd/register-command @clj-plugin "clj.tabtest" #'tabtest-command :player :material [:keyword [:start :stop]] [:string #'tabcomplete-reverse-first])
   (cmd/register-command @clj-plugin "clj.addevent" #'addevent-command :event :string)
   (cmd/register-command @clj-plugin "clj.spawnentity" #'spawn-command :entity)
+  (cmd/register-command @clj-plugin "clj.permission" #'permission-command :player :permission [:keyword [:allow :disallow :release]])
+  (setup-permission-system plugin)
   (start-repl-if-needed plugin))
 
 (defn stop
   "onDisable cljminecraft"
   [plugin]
-  (stop-repl))
-
+  (stop-repl)
+  (disable-permission-system))
 
 (defn on-enable 
   "to enable self or any child plugins"
   [plugin]
   (cfg/config-defaults plugin)
-
   (let [plugin-name (.getName plugin)
         resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
     (if (not resolved)

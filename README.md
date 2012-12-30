@@ -23,6 +23,12 @@ understand what changes are made and adjust your plugins accordingly.
 
 Changelog:
 
+30 December 2012:
+ - Implement a simple permissions extension for checking and setting specific permissions on players
+   o This does not yet persist given player permissions across sessions
+ - Added clj.permission as a command to give a player a specific permission
+   o Autocompletion may need work as command lists within commands are untested.
+ 
 29 December 2012:
  - Now sends a message to the player triggering an event when the event function returns {:msg "..."}
  - Fix up line function
