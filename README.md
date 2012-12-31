@@ -2,13 +2,13 @@
 
 cljminecraft has two specific goals:
 
-*Open up support for other clojure plugins on Bukkit*
+**Open up support for other clojure plugins on Bukkit**
 > The first objective is accomplished within the ClojurePlugin.java
 > class and the cljminecraft.core namespace. It will take care of
 > calling the [plugin].core/start function, passing in the Bukkit plugin
 > object for local plugin state handling.
 
-*Provide convenience functions to make writing plugins more idiomatic to clojure*
+**Provide convenience functions to make writing plugins more idiomatic to clojure**
 > The second objective is accomplished by the various other namespaces
 > in clj-minecraft. I'm keeping the structure fairly flat and concise so
 > that one can write idiomatic code for 80% of the plugin code.
