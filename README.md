@@ -2,18 +2,16 @@
 
 cljminecraft has two specific goals:
 
-1) Open up support for other clojure plugins on Bukkit
-2) Provide convenience functions to make writing plugins more
-idiomatic to clojure.
+*Open up support for other clojure plugins on Bukkit*
+> The first objective is accomplished within the ClojurePlugin.java
+> class and the cljminecraft.core namespace. It will take care of
+> calling the [plugin].core/start function, passing in the Bukkit plugin
+> object for local plugin state handling.
 
-The first objective is accomplished within the ClojurePlugin.java
-class and the cljminecraft.core namespace. It will take care of
-calling the [plugin].core/start function, passing in the Bukkit plugin
-object for local plugin state handling.
-
-The second objective is accomplished by the various other namespaces
-in clj-minecraft. I'm keeping the structure fairly flat and concise so
-that one can write idiomatic code for 80% of the plugin code.
+*Provide convenience functions to make writing plugins more idiomatic to clojure*
+> The second objective is accomplished by the various other namespaces
+> in clj-minecraft. I'm keeping the structure fairly flat and concise so
+> that one can write idiomatic code for 80% of the plugin code.
 
 ## Usage
 
@@ -21,26 +19,38 @@ that one can write idiomatic code for 80% of the plugin code.
 
 Download the latest server mod build from http://dev.bukkit.org/server-mods/cljminecraft/files/ or build it yourself by cloning the repo and `lein uberjar`
 
-Copy the jar into the Bukkit plugin folder and fire up your server. Once started, it should have opened a REPL port, by default on port 4005, so you can:
+Copy the jar into the Bukkit plugin folder and fire up your server. Once started, it should have opened a REPL port, by default on port 4005
+
+If all you wanted was to enable clojure plugins on your server, you're done. If you want to write some code, read on.
+
+### Write some code
+
+From now on, you will need leiningen installed - see https://github.com/technomancy/leiningen
 
 ```
 lein repl :connect 4005
 ```
 
 Now you have an active connection to push code onto the server, let's try some stuff (the part before => is the REPL prompt...):
+
 ```clojure
 user=> (in-ns 'cljminecraft.core)
 #<Namespace cljminecraft.core>
+
 cljminecraft.core=> (ev/find-event "break")
 ("painting.painting-break-by-entity" "hanging.hanging-break" "painting.painting-break" "entity.entity-break-door" "hanging.hanging-break-by-entity" "player.player-item-break" "block.block-break")
-;;; block.block-break looks good.. lets see what we can get out of it
+
+;; block.block-break looks good.. lets see what we can get out of it
 cljminecraft.core=> (ev/describe-event "block.block-break")
 #{"setExpToDrop" "isCancelled" "getEventName" "setCancelled" "getExpToDrop" "getPlayer" "getBlock"}
+
 ;; Cool, getBlock looks like I can use it..
 cljminecraft.core=> (defn mybreakfn [ev] {:msg (format "You broke a %s" (.getBlock ev))})
 #'cljminecraft.core/mybreakfn
+
 cljminecraft.core=> (ev/register-event @clj-plugin "block.block-break" #'mybreakfn)
 nil
+
 ;; Test breaking a block, I get a crazy message, let's make that more sane
 cljminecraft.core=> (defn mybreakfn [ev] {:msg (format "You broke a %s" (.getType (.getBlock ev)))})
 #'cljminecraft.core/mybreakfn
@@ -68,15 +78,17 @@ Start up your Bukkit server and go, by default, you'll see a message when you pl
 
 Remember to update your details in the plugin.yml and README.md files - and very importantly, commit to github to share with the world.
 
+Also, be sure to look at the wiki for more in-depth instructions on all the moving parts: http://github.com/CmdrDats/clj-minecraft/wiki
+
 Time to hack away.
 
 ## Changelog:
 
 30 December 2012:
  - Implement a simple permissions extension for checking and setting specific permissions on players
-   o This does not yet persist given player permissions across sessions
+   - This does not yet persist given player permissions across sessions
  - Added clj.permission as a command to give a player a specific permission
-   o Autocompletion may need work as command lists within commands are untested.
+   - Autocompletion may need work as command lists within commands are untested.
  
 29 December 2012:
  - Now sends a message to the player triggering an event when the event function returns {:msg "..."}
