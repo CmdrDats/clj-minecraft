@@ -8,7 +8,7 @@
    type-keys
    (let [entclasses
          (filter #(not (nil? %))
-                 (map #(if-let [t (get entitytypes %)] (.getEntityClass type))
+                 (map #(if-let [t (get entitytypes %)] (.getEntityClass t))
                       (if (coll? type-keys) type-keys [type-keys])))]
      (if (not-empty entclasses)
        (.getEntitiesByClasses world (into-array Class entclasses))
@@ -26,4 +26,3 @@
   (let [type (get entitytypes (keyword entityname))]
     (when (and type (.isSpawnable type))
       (.spawnEntity (.getWorld location) location type))))
-
