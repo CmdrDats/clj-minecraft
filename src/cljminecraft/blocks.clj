@@ -123,8 +123,8 @@
 
 (defaction fork
   "Run actions with ctx but don't update current ctx - effectively a subprocess"
-  ctx [actions]
-  (run-actions ctx actions)
+  ctx [& actions]
+  (apply run-actions ctx actions)
   ctx)
 
 (defaction mark
@@ -256,7 +256,7 @@
 
 (defn extrude [direction x & actions]
   (for [c (range x)]
-    (fork
+    (apply fork
      {:action :move :direction direction :distance c}
      actions)))
 
