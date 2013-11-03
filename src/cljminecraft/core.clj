@@ -31,12 +31,12 @@
   []
   (cond
    (nil? @repl-handle) {:msg "you tried to stop REPL when it was not running"}
-   :else 
+   :else
    (try
-     (do 
+     (do
        (stop-server @repl-handle)
        {:msg "REPL stopped"})
-     (finally 
+     (finally
       (reset! repl-handle nil)))))
 
 (defn start-repl-if-needed [plugin]
@@ -92,11 +92,11 @@
   (plr/permission-attach-all! plugin))
 
 (defn disable-permission-system
-  [plugin]
+  []
   (plr/permission-detach-all!))
 
 ;; cljminecraft specific setup
-(defn start 
+(defn start
   "onEnable cljminecraft"
   [plugin]
   (reset! clj-plugin plugin)
@@ -114,7 +114,7 @@
   (stop-repl)
   (disable-permission-system))
 
-(defn on-enable 
+(defn on-enable
   "to enable self or any child plugins"
   [plugin]
   (cfg/config-defaults plugin)
@@ -122,7 +122,7 @@
         resolved (resolve (symbol (str (.getName plugin) ".core/start")))]
     (if (not resolved)
       (log/warn "plugin %s didn't have a start function" plugin-name)
-      (do 
+      (do
         ;the following line is for debugging purposes only, to be removed:
         (log/info "second Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
         (log/info "calling child `start` for %s" plugin-name)
@@ -141,6 +141,3 @@
   ;the following line is for debugging purposes only, to be removed:
   (log/info "third Repl options: %s %s %s" (cfg/get-string plugin "repl.host") (cfg/get-int plugin "repl.port") (cfg/get-boolean plugin "repl.enabled"))
   )
-
-
-
