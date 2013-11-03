@@ -1,6 +1,6 @@
 (defproject cljminecraft "1.0.5-SNAPSHOT"
   :description "Clojure for Bukkit Minecraft"
-  :dependencies [[org.clojure/clojure         "1.4.0"]
+  :dependencies [[org.clojure/clojure         "1.5.1"]
                  [org.clojure/tools.logging   "0.2.6"]
                  [org.clojure/tools.nrepl     "0.2.3"]
                  [org.bukkit/bukkit           "1.4.5-R1.0"]
