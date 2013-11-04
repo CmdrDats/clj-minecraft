@@ -1,6 +1,6 @@
 name: cljminecraft
 main: cljminecraft.ClojurePlugin
-version: 1.0.2
+version: 1.0.5
 website: https://github.com/CmdrDats/clj-minecraft
 author: CmdrDats & aiscott
 description: Bukkit + clojure integration library
@@ -9,7 +9,7 @@ commands:
     description: Start or stop the Clojure REPL
     permission: clojure.repl
     usage: |
-      /<command> start/stop [port] 
+      /<command> start/stop [port]
       Example: /<command> start - starts a REPL on the default 4005 port
       Example: /<command> start 5006 - starts a REPL on the 5006 port
       Example: /<command> stop - stop the current REPL
