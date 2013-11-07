@@ -1,6 +1,6 @@
 name: cljminecraft
 main: cljminecraft.ClojurePlugin
-version: 1.0.5
+version: 1.0.6
 website: https://github.com/CmdrDats/clj-minecraft
 author: CmdrDats & aiscott
 description: Bukkit + clojure integration library
