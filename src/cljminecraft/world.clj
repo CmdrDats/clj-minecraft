@@ -13,6 +13,8 @@
 (defn facing-block
   "If this is a directional block, will return the block it's facing, otherwise it will return the block itself"
   [block]
+  (when-not (.isLoaded (.getChunk block))
+    (.load (.getChunk block)))
   (let [data (.. block getState getData)]
     (if (instance? Directional data)
       (.getFace block (.getFacing data))

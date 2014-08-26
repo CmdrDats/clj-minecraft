@@ -54,6 +54,7 @@ public class ClojurePlugin extends BasePlugin {
 			success = loadClojureNameSpace(pluginName+".core");
 		}
 
+                loadClojureNameSpace ("cljminecraft.core");
 		invokeClojureFunction(selfCoreScript, selfEnableFunction );
 		
 		return success;

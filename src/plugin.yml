@@ -1,5 +1,6 @@
 name: cljminecraft
 main: cljminecraft.ClojurePlugin
+load: STARTUP
 version: 1.0.6
 website: https://github.com/CmdrDats/clj-minecraft
 author: CmdrDats & aiscott
