@@ -3,7 +3,7 @@
   :dependencies [[org.clojure/clojure         "1.5.1"]
                  [org.clojure/tools.logging   "0.2.6"]
                  [org.clojure/tools.nrepl     "0.2.3"]
-                 [org.bukkit/bukkit           "1.6.4-R2.0"]
+                 [org.bukkit/bukkit           "1.12.1-R0.1-SNAPSHOT"]
                  [clojure-complete            "0.2.3"]
                  [cheshire                    "5.2.0"]
                  [org.reflections/reflections "0.9.8"]]
@@ -15,6 +15,6 @@
                        #"org[/]apache[/]commons[/](.*)"
                        #"javax[/]persistence[/](.*)"
                        #"net[/]sf[/]cglib[/](.*)"]
-  :repositories [["bukkit.snapshots" "http://repo.bukkit.org/content/repositories/snapshots"]
-                 ["bukkit.release"   "http://repo.bukkit.org/content/repositories/releases"]]
+  :repositories [["bukkit.snapshots" "https://hub.spigotmc.org/nexus/content/repositories/snapshots"]
+                 ["bukkit.release"   "https://hub.spigotmc.org/nexus/content/repositories/releases"]]
   )
