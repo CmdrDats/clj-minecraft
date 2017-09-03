@@ -32,7 +32,7 @@
 (event-player inventory.inventory-click)
 (event-player inventory.inventory-close)
 (event-player inventory.inventory-open)
-(event-player painting.painting-place)
+(event-player hanging.hanging-place)
 (event-player player.player)
 
 (extend-type org.bukkit.inventory.InventoryView
