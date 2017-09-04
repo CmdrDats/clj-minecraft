@@ -1,5 +1,7 @@
 # cljminecraft
 
+[![Join the chat at https://gitter.im/clj-minecraft/Lobby](https://badges.gitter.im/clj-minecraft/Lobby.svg)](https://gitter.im/clj-minecraft/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 cljminecraft has two specific goals:
 
 **Open up support for other clojure plugins on Bukkit**
