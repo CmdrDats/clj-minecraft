@@ -10,7 +10,7 @@
             [cljminecraft.commands :as cmd]
             [cljminecraft.recipes :as r]
             [cljminecraft.items :as i]
-            [cljminecraft.files]
+            [cljminecraft.files :as files]
             [clojure.tools.nrepl.server :refer (start-server stop-server)]))
 
 (def repl-handle (atom nil))
@@ -51,6 +51,13 @@
        (if msg (log/info msg))))))
 
 (defonce clj-plugin (atom nil))
+
+(defn script [file]
+  (load-file (files/join-path (cfg/get-string @clj-plugin "scripts-directory") file)))
+
+(defn script-command [sender file]
+  (log/info "Running script command with %s" file)
+  (script file))
 
 (defn repl-command [sender cmd & [port]]
   (log/info "Running repl command with %s %s" cmd port)
@@ -100,6 +107,7 @@
   "onEnable cljminecraft"
   [plugin]
   (reset! clj-plugin plugin)
+  (cmd/register-command @clj-plugin "clj.script" #'script-command :string)
   (cmd/register-command @clj-plugin "clj.repl" #'repl-command [:keyword [:start :stop]] [:int [(cfg/get-int plugin "repl.port")]])
   (cmd/register-command @clj-plugin "clj.tabtest" #'tabtest-command :player :material [:keyword [:start :stop]] [:string #'tabcomplete-reverse-first])
   (cmd/register-command @clj-plugin "clj.addevent" #'addevent-command :event :string)

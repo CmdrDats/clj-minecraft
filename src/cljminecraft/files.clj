@@ -2,6 +2,9 @@
   (:require [cheshire.core :as json])
   (:require [clojure.java.io :as io]))
 
+(defn join-path [path1 path2]
+  (.getAbsolutePath (new java.io.File (new java.io.File path1), path2)))
+
 (defn data-folder [plugin]
   (.getDataFolder plugin))
 

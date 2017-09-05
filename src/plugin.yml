@@ -6,6 +6,14 @@ website: https://github.com/CmdrDats/clj-minecraft
 author: CmdrDats & aiscott
 description: Bukkit + clojure integration library
 commands:
+  clj.eval:
+    description: Read and evaluate Clojure code in-game.
+    permission: clojure.eval
+    usage: /<command> code
+  clj.script:
+    description: Read and evaluate a Clojure script in-game.
+    permission: clojure.script
+    usage: /<command> file
   clj.repl:
     description: Start or stop the Clojure REPL
     permission: clojure.repl
