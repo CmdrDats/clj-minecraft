@@ -100,12 +100,12 @@
 (defmat PistonBaseMaterial
   [.setFacingDirection direction blockfaces])
 
-(defmat TripwireHook
+#_(defmat TripwireHook
   [.setFacingDirection direction blockfaces]
   [.setConnected connected?]
   [.setActivated activated?])
 
-(defmat Tripwire
+#_(defmat Tripwire
   [.setObjectTriggering triggering?]
   [.setActivated activated?])
 

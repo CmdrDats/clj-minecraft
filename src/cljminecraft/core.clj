@@ -11,7 +11,7 @@
             [cljminecraft.recipes :as r]
             [cljminecraft.items :as i]
             [cljminecraft.files :as files]
-            [clojure.tools.nrepl.server :refer (start-server stop-server)]))
+            [nrepl.server :refer (start-server stop-server)]))
 
 (def repl-handle (atom nil))
 
